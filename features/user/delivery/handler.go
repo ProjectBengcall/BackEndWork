@@ -28,8 +28,10 @@ func New(e *echo.Echo, srv domain.Service) {
 
 func (uh *userHandler) MyProfile() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := common.ExtractToken(c)
-		if userID == 0 {
+		userID, role := common.ExtractToken(c)
+		if role != 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
 			res, err := uh.srv.MyProfile(uint(userID))
@@ -58,7 +60,7 @@ func (us *userHandler) UpdateProfile() echo.HandlerFunc {
 			input.Images = res
 		}
 
-		id := common.ExtractToken(c)
+		id, _ := common.ExtractToken(c)
 		userID := uint(id)
 		cnv := ToDomain(input)
 		res, err := us.srv.UpdateProfile(cnv, userID)
@@ -72,8 +74,10 @@ func (us *userHandler) UpdateProfile() echo.HandlerFunc {
 
 func (uh *userHandler) Deactivate() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID := common.ExtractToken(c)
-		if userID == 0 {
+		userID, role := common.ExtractToken(c)
+		if role != 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
 			err := uh.srv.Deactivate(userID)
@@ -93,6 +97,7 @@ func (uh *userHandler) Register() echo.HandlerFunc {
 		}
 
 		input.Images = "https://ecommerce-alta.s3.ap-southeast-1.amazonaws.com/profile/KJeT8FtTYYFq9MRbiv3u-profile.jpg"
+		input.Role = 0
 		cnv := ToDomain(input)
 		res, err := uh.srv.Register(cnv)
 		if err != nil {
@@ -116,7 +121,7 @@ func (uh *userHandler) Login() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 		}
 
-		res.Token = common.GenerateToken(uint(res.ID))
+		res.Token = common.GenerateToken(uint(res.ID), res.Role)
 
 		return c.JSON(http.StatusAccepted, SuccessLogin("Success to login", ToResponse(res, "login")))
 	}

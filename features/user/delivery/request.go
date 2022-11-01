@@ -7,6 +7,7 @@ type UserFormat struct {
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
 	Images   string `json:"images" form:"images"`
+	Role     uint   `json:"role" form:"role"`
 }
 
 type LoginFormat struct {
