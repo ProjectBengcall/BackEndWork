@@ -2,7 +2,6 @@ package common
 
 import (
 	"bengcall/config"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -10,10 +9,11 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-func GenerateToken(id uint) string {
+func GenerateToken(id uint, role uint) string {
 	claim := make(jwt.MapClaims)
 	claim["authorized"] = true
 	claim["id"] = id
+	claim["role"] = role
 	claim["expired"] = time.Now().Add(time.Hour * 24).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
@@ -26,12 +26,13 @@ func GenerateToken(id uint) string {
 	return str
 }
 
-func ExtractToken(c echo.Context) uint {
+func ExtractToken(c echo.Context) (uint, uint) {
 	token := c.Get("user").(*jwt.Token)
 	if token.Valid {
 		claim := token.Claims.(jwt.MapClaims)
-		fmt.Print(uint(claim["id"].(float64)))
-		return uint(claim["id"].(float64))
+		id := uint(claim["id"].(float64))
+		role := uint(claim["role"].(float64))
+		return id, role
 	}
-	return 0
+	return 0, 0
 }
