@@ -43,7 +43,7 @@ func (uh *userHandler) MyProfile() echo.HandlerFunc {
 	}
 }
 
-func (us *userHandler) UpdateProfile() echo.HandlerFunc {
+func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input EditFormat
 		if err := c.Bind(&input); err != nil {
@@ -63,7 +63,7 @@ func (us *userHandler) UpdateProfile() echo.HandlerFunc {
 		id, _ := common.ExtractToken(c)
 		userID := uint(id)
 		cnv := ToDomain(input)
-		res, err := us.srv.UpdateProfile(cnv, userID)
+		res, err := uh.srv.UpdateProfile(cnv, userID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 		}
@@ -92,12 +92,13 @@ func (uh *userHandler) Deactivate() echo.HandlerFunc {
 func (uh *userHandler) Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input UserFormat
+
 		if err := c.Bind(&input); err != nil {
 			return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
 		}
 
-		input.Images = "https://ecommerce-alta.s3.ap-southeast-1.amazonaws.com/profile/KJeT8FtTYYFq9MRbiv3u-profile.jpg"
-		input.Role = 0
+		//input.Images = "ini gambar percobaan"
+
 		cnv := ToDomain(input)
 		res, err := uh.srv.Register(cnv)
 		if err != nil {

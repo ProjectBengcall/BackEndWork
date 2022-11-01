@@ -71,8 +71,10 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 		log.Error("error on bcrypt", err.Error())
 		return domain.UserCore{}, errors.New("cannot encrypt password")
 	}
-	newUser.Password = string(generate)
 
+	newUser.Password = string(generate)
+	newUser.Images = "https://dreamvilla.life/wp-content/uploads/2017/07/dummy-profile-pic.png"
+	newUser.Role = 0
 	res, err := us.qry.AddUser(newUser)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate") {
@@ -80,6 +82,7 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 		}
 		return domain.UserCore{}, errors.New("some problem on database")
 	}
+
 	return res, nil
 }
 

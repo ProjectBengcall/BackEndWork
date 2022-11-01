@@ -52,7 +52,7 @@ func (rq *repoQuery) GetMyUser(userID uint) (domain.UserCore, error) {
 // GetUser implements domain.Repository
 func (rq *repoQuery) GetUser(existUser domain.UserCore) (domain.UserCore, error) {
 	var resQuery User
-	if err := rq.db.First(&resQuery, "username = ?", existUser.Email).Error; err != nil {
+	if err := rq.db.First(&resQuery, "email = ?", existUser.Email).Error; err != nil {
 		log.Error("error on get user login", err.Error())
 		return domain.UserCore{}, nil
 	}
