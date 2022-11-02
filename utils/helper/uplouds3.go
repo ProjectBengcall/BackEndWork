@@ -58,7 +58,7 @@ func UploadProfile(c echo.Context) (string, error) {
 	uploader := s3manager.NewUploader(s3Session)
 
 	input := &s3manager.UploadInput{
-		Bucket:      aws.String("altafashion"),                                      // bucket's name
+		Bucket:      aws.String("bengcallbucket"),                                      // bucket's name
 		Key:         aws.String("profile/" + randomStr + "-" + fileheader.Filename), // files destination location
 		Body:        file,                                                           // content of the file
 		ContentType: aws.String("image/jpg"),                                        // content type

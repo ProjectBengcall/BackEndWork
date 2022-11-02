@@ -73,7 +73,7 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 	}
 
 	newUser.Password = string(generate)
-	newUser.Images = "https://dreamvilla.life/wp-content/uploads/2017/07/dummy-profile-pic.png"
+	newUser.Images = "https://bengcallbucket.s3.ap-southeast-1.amazonaws.com/profile/Q5aWl5c2RKoHcIFIrbMi-dummy450x450.jpg"
 	newUser.Role = 0
 	res, err := us.qry.AddUser(newUser)
 	if err != nil {
