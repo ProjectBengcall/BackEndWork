@@ -74,7 +74,7 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 	err := us.validate.Struct(cnv)
 	if err != nil {
 		log.Error("Validation errror : ", err.Error())
-		return domain.UserCore{}, err
+		return domain.UserCore{}, errors.New("validation error")
 	}
 
 	generate, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
@@ -107,6 +107,12 @@ func (us *userService) UpdateProfile(updatedUser domain.UserCore, userID uint) (
 		}
 		updatedUser.Password = string(generate)
 	}
+	// var cnv = rep.FromDomain(updatedUser)
+	// err := us.validate.Struct(cnv)
+	// if err != nil {
+	// 	log.Error("Validation errror : ", err.Error())
+	// 	return domain.UserCore{}, err
+	// }
 
 	res, err := us.qry.Update(updatedUser, userID)
 	if err != nil {
