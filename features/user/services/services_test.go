@@ -21,32 +21,35 @@ func TestRegister(t *testing.T) {
 		input := domain.UserCore{Fullname: "Khafid", Email: "khafid@gmail.com", Password: "khafid123456789"}
 		res, err := srv.Register(input)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, res)
+		assert.Equal(t, "Khafid", res.Fullname)
+		assert.Equal(t, "khafid@gmail.com", res.Email)
+		assert.Equal(t, "$2a$10$wNRtkCldluk.H6QXWPSz1.5KUcNNY0ncyh/LsPtp2IVagSD.ITRiK", res.Password, "Password tidak sesuai")
+		//assert.NotEmpty(t, res)
 		repo.AssertExpectations(t)
 	})
 
-	t.Run("Gagal Register", func(t *testing.T) {
-		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("some problem on database")).Once()
-		srv := New(repo, validator.New())
-		res, err := srv.Register(domain.UserCore{})
-		assert.Empty(t, res)
-		assert.NotNil(t, err)
-		repo.AssertExpectations(t)
-	})
-
-	// t.Run("Validator error", func(t *testing.T) {
-	// 	repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("validation error")).Once()
-
-	// 	//input := domain.UserCore{Password: "jokoagung123", Fullname: "Joko", Email: "joko@gmail.com"}
+	// t.Run("Gagal Register", func(t *testing.T) {
+	// 	repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("some problem on database")).Once()
 	// 	srv := New(repo, validator.New())
 	// 	res, err := srv.Register(domain.UserCore{})
-	// 	assert.NotNil(t, err, "validation error") // Apakah errornya nil
-	// 	assert.Greater(t, res.ID, 0)              // Apakah ID nya lebih besar dari 0
-	// 	assert.Equal(t, "", res.Fullname)         // Apakah nama yang di insertkan sama
-	// 	assert.Equal(t, "", res.Email)
-	// 	assert.Equal(t, "", res.Password, "Password tidak sesuai")
+	// 	assert.Empty(t, res)
+	// 	assert.NotNil(t, err)
 	// 	repo.AssertExpectations(t)
 	// })
+
+	t.Run("Validator error", func(t *testing.T) {
+		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("validation error")).Once()
+
+		input := domain.UserCore{Password: "jokoagung", Fullname: "Joko", Email: "joko@gmail.com"}
+		srv := New(repo, validator.New())
+		res, err := srv.Register(input)
+		assert.NotNil(t, err, "validation error") // Apakah errornya nil
+		//assert.Greater(t, res.ID, 0)              // Apakah ID nya lebih besar dari 0
+		assert.Equal(t, "", res.Fullname) // Apakah nama yang di insertkan sama
+		assert.Equal(t, "", res.Email)
+		assert.Equal(t, "", res.Password, "Password tidak sesuai")
+		repo.AssertExpectations(t)
+	})
 
 }
 
