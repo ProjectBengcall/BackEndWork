@@ -2,20 +2,24 @@ package services
 
 import (
 	"bengcall/features/user/domain"
+	rep "bengcall/features/user/repository"
 	"errors"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/gommon/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
-	qry domain.Repository
+	qry      domain.Repository
+	validate *validator.Validate
 }
 
-func New(repo domain.Repository) domain.Service {
+func New(repo domain.Repository, val *validator.Validate) domain.Service {
 	return &userService{
-		qry: repo,
+		qry:      repo,
+		validate: val,
 	}
 }
 
@@ -66,6 +70,13 @@ func (us *userService) MyProfile(userID uint) (domain.UserCore, error) {
 
 // Register implements domain.Service
 func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error) {
+	var cnv = rep.FromDomain(newUser)
+	err := us.validate.Struct(cnv)
+	if err != nil {
+		log.Error("Validation errror : ", err.Error())
+		return domain.UserCore{}, err
+	}
+
 	generate, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error("error on bcrypt", err.Error())

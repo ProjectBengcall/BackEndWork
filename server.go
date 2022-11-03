@@ -7,6 +7,7 @@ import (
 	sUser "bengcall/features/user/services"
 	"bengcall/utils/database"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -17,7 +18,8 @@ func main() {
 	db := database.InitDB(cfg)
 
 	mdlUser := rUser.New(db)
-	serUser := sUser.New(mdlUser)
+	validator := validator.New()
+	serUser := sUser.New(mdlUser, validator)
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
