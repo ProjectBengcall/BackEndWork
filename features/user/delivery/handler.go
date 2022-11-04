@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -96,34 +97,53 @@ func (uh *userHandler) Register() echo.HandlerFunc {
 		if err := c.Bind(&input); err != nil {
 			return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
 		}
-
-		//input.Images = "ini gambar percobaan"
+		// if strings.TrimSpace(input.Email) == "" || strings.TrimSpace(input.Password) == "" {
+		// 	return c.JSON(http.StatusBadRequest, FailResponse("input empty"))
+		// }
 
 		cnv := ToDomain(input)
 		res, err := uh.srv.Register(cnv)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			if strings.Contains(err.Error(), "password") {
+				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			} else if strings.Contains(err.Error(), " email") {
+				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			} else {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+		} else if res.ID != 0 {
+			return c.JSON(http.StatusCreated, SuccessResponse("Success create new user", ToResponse(res, "reg")))
 		}
-		return c.JSON(http.StatusCreated, SuccessResponse("Success create new user", ToResponse(res, "reg")))
+		return nil
 	}
 }
 
 func (uh *userHandler) Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
+
 		var input LoginFormat
 		if err := c.Bind(&input); err != nil {
 			return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
 		}
-
+		if strings.TrimSpace(input.Email) == "" || strings.TrimSpace(input.Password) == "" {
+			return c.JSON(http.StatusBadRequest, FailResponse("password or email empty"))
+		}
 		cnv := ToDomain(input)
 		res, err := uh.srv.Login(cnv)
 		fmt.Println(res.ID)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			if strings.Contains(err.Error(), "found") {
+				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			} else if strings.Contains(err.Error(), "wrong") {
+				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			} else {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+		} else if res.ID != 0 {
+			res.Token = common.GenerateToken(uint(res.ID), res.Role)
+			return c.JSON(http.StatusAccepted, SuccessLogin("Success to login", ToResponse(res, "login")))
+
 		}
-
-		res.Token = common.GenerateToken(uint(res.ID), res.Role)
-
-		return c.JSON(http.StatusAccepted, SuccessLogin("Success to login", ToResponse(res, "login")))
+		return nil
 	}
 }
