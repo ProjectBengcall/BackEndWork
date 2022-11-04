@@ -8,9 +8,9 @@ import (
 
 type User struct {
 	gorm.Model
-	Fullname string `json:"fullname" validate:"required,alpha,min=3,max=40"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,alphanum,min=8"`
+	Fullname string `json:"fullname" validate:"required,min=3,max=20"`
+	Email    string `gorm:"unique" json:"email"  validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,containsany=1234567890" `
 	Images   string `json:"images"`
 	Role     uint   `json:"role" validate:"numeric"`
 	Token    string `json:"token" validate:"multibyte"`

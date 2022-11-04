@@ -38,21 +38,35 @@ func (us *userService) Deactivate(userID uint) error {
 
 // Login implements domain.Service
 func (us *userService) Login(existUser domain.UserCore) (domain.UserCore, error) {
+	var cnv = rep.FromDomain(existUser)
+	if strings.TrimSpace(cnv.Email) == "" || strings.TrimSpace(cnv.Password) == "" {
+		return domain.UserCore{}, errors.New("Email or password empty")
+	}
+
 	res, err := us.qry.GetUser(existUser)
 	if err != nil {
+		log.Error(err.Error())
 		if strings.Contains(err.Error(), "table") {
-			return domain.UserCore{}, errors.New("database error")
+			return domain.UserCore{}, errors.New("Failed. Error database.")
 		} else if strings.Contains(err.Error(), "found") {
-			return domain.UserCore{}, errors.New("no data")
+			return domain.UserCore{}, errors.New("Failed. Email or Password not found.")
+		} else {
+			return domain.UserCore{}, errors.New("Failed. Process error. Please contact Admin")
 		}
 	}
 
+	//pass := domain.UserCore{Password: res.Password}
 	err = bcrypt.CompareHashAndPassword([]byte(res.Password), []byte(existUser.Password))
 	if err != nil {
-		return domain.UserCore{}, errors.New("password not match")
+		log.Error(err, " wrong password")
+		if strings.Contains(err.Error(), "found") {
+			return domain.UserCore{}, errors.New("Failed. Email or Password not found.")
+		} else {
+			return domain.UserCore{}, errors.New("wrong password")
+		}
 	}
-
 	return res, nil
+
 }
 
 // MyProfile implements domain.Service
@@ -73,8 +87,11 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 	var cnv = rep.FromDomain(newUser)
 	err := us.validate.Struct(cnv)
 	if err != nil {
-		log.Error("Validation errror : ", err.Error())
-		return domain.UserCore{}, errors.New("validation error")
+		if strings.Contains(err.Error(), "email") {
+			return domain.UserCore{}, errors.New("invalid email")
+		} else {
+			return domain.UserCore{}, errors.New("invalid password")
+		}
 	}
 
 	generate, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
@@ -86,15 +103,17 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 	newUser.Password = string(generate)
 	newUser.Images = "https://bengcallbucket.s3.ap-southeast-1.amazonaws.com/profile/Q5aWl5c2RKoHcIFIrbMi-dummy450x450.jpg"
 	newUser.Role = 0
+	orgPass := newUser.Password
 	res, err := us.qry.AddUser(newUser)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate") {
 			return domain.UserCore{}, errors.New("rejected from database")
 		}
-		return domain.UserCore{}, errors.New("some problem on database")
+		return domain.UserCore{}, errors.New("email alredy exist")
 	}
-
+	res.Password = orgPass
 	return res, nil
+
 }
 
 // UpdateProfile implements domain.Service
