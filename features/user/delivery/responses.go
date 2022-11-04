@@ -5,6 +5,7 @@ import "bengcall/features/user/domain"
 type LoginResponse struct {
 	Fullname string `json:"fullname"`
 	Images   string `json:"images"`
+	Role     uint   `json:"role"`
 	Token    string `json:"token"`
 }
 
@@ -31,7 +32,7 @@ func ToResponse(core interface{}, code string) interface{} {
 	switch code {
 	case "login":
 		cnv := core.(domain.UserCore)
-		res = LoginResponse{Fullname: cnv.Fullname, Images: cnv.Images, Token: cnv.Token}
+		res = LoginResponse{Fullname: cnv.Fullname, Images: cnv.Images, Role: cnv.Role, Token: cnv.Token}
 	case "reg":
 		cnv := core.(domain.UserCore)
 		res = RegistResponses{Fullname: cnv.Fullname, Email: cnv.Email}
