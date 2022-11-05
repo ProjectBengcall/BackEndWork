@@ -1,11 +1,13 @@
 package services
 
 import (
+	"bengcall/config"
 	"bengcall/features/vehicle/domain"
 	"errors"
 	"strings"
 
 	"github.com/labstack/gommon/log"
+	"gorm.io/gorm"
 )
 
 type vehicleService struct {
@@ -21,7 +23,6 @@ func New(repo domain.Repository) domain.Service {
 // AddVehicle implements domain.Service
 func (vs *vehicleService) AddVehicle(newItem domain.VehicleCore) (domain.VehicleCore, error) {
 	res, err := vs.qry.Add(newItem)
-
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate") {
 			return domain.VehicleCore{}, errors.New("rejected from database")
@@ -36,12 +37,12 @@ func (vs *vehicleService) AddVehicle(newItem domain.VehicleCore) (domain.Vehicle
 // DeleteVehicle implements domain.Service
 func (vs *vehicleService) DeleteVehicle(vehicleID uint) error {
 	err := vs.qry.Delete(vehicleID)
-	if err != nil {
-		if strings.Contains(err.Error(), "table") {
-			return errors.New("database error")
-		} else if strings.Contains(err.Error(), "found") {
-			return errors.New("no data")
-		}
+	if err == gorm.ErrRecordNotFound {
+		log.Error(err.Error())
+		return gorm.ErrRecordNotFound
+	} else if err != nil {
+		log.Error(err.Error())
+		return errors.New(config.DATABASE_ERROR)
 	}
 	return nil
 }
@@ -49,18 +50,17 @@ func (vs *vehicleService) DeleteVehicle(vehicleID uint) error {
 // GetVehicle implements domain.Service
 func (vs *vehicleService) GetVehicle() ([]domain.VehicleCore, error) {
 	res, err := vs.qry.GetAll()
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
 		log.Error(err.Error())
-		if strings.Contains(err.Error(), "table") {
-			return nil, errors.New("database error")
-		} else if strings.Contains(err.Error(), "found") {
-			return nil, errors.New("no data")
-		}
+		return nil, gorm.ErrRecordNotFound
+	} else if err != nil {
+		log.Error(err.Error())
+		return nil, errors.New(config.DATABASE_ERROR)
 	}
 
 	if len(res) == 0 {
 		log.Info("no data")
-		return nil, errors.New("no data")
+		return nil, errors.New(config.DATA_NOTFOUND)
 	}
 
 	return res, nil

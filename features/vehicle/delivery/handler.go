@@ -6,6 +6,7 @@ import (
 	"bengcall/utils/common"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,7 +19,7 @@ type vehicleHandler struct {
 func New(e *echo.Echo, srv domain.Service) {
 	handler := vehicleHandler{srv: srv}
 	e.POST("/vehicles", handler.AddVehicle(), middleware.JWT([]byte(config.JwtKey)))
-	e.GET("/books", handler.GetVehicle())
+	e.GET("/vehicles", handler.GetVehicle(), middleware.JWT([]byte(config.JwtKey)))
 	e.DELETE("/vehicles/:id", handler.DeleteVehicle(), middleware.JWT([]byte(config.JwtKey)))
 
 }
@@ -55,11 +56,18 @@ func (bs *vehicleHandler) DeleteVehicle() echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
 			ID, err := strconv.Atoi(c.Param("id"))
-			if err = bs.srv.DeleteVehicle(uint(ID)); err != nil {
-				return c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			err = bs.srv.DeleteVehicle(uint(ID))
+			if err != nil {
+				if strings.Contains(err.Error(), "found") {
+					c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+				} else {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+			} else {
+				return c.JSON(http.StatusAccepted, FailResponse("success delete vehicle"))
 			}
-			return c.JSON(http.StatusAccepted, FailResponse("success delete vehicle"))
 		}
+		return nil
 	}
 }
 
@@ -71,10 +79,15 @@ func (bs *vehicleHandler) GetVehicle() echo.HandlerFunc {
 		} else {
 			res, err := bs.srv.GetVehicle()
 			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				if strings.Contains(err.Error(), "found") {
+					c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+				} else {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+			} else {
+				return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle", ToResponse(res, "all")))
 			}
-
-			return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle", ToResponse(res, "all")))
 		}
+		return nil
 	}
 }
