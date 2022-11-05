@@ -18,9 +18,9 @@ type vehicleHandler struct {
 
 func New(e *echo.Echo, srv domain.Service) {
 	handler := vehicleHandler{srv: srv}
-	e.POST("/vehicles", handler.AddVehicle(), middleware.JWT([]byte(config.JwtKey)))
+	e.POST("/admin/vehicles", handler.AddVehicle(), middleware.JWT([]byte(config.JwtKey)))
 	e.GET("/vehicles", handler.GetVehicle(), middleware.JWT([]byte(config.JwtKey)))
-	e.DELETE("/vehicles/:id", handler.DeleteVehicle(), middleware.JWT([]byte(config.JwtKey)))
+	e.DELETE("/admin/vehicles/:id", handler.DeleteVehicle(), middleware.JWT([]byte(config.JwtKey)))
 
 }
 
