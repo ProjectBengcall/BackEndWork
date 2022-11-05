@@ -2,6 +2,7 @@ package database
 
 import (
 	"bengcall/config"
+	rService "bengcall/features/service/repository"
 	rUser "bengcall/features/user/repository"
 	"fmt"
 
@@ -31,4 +32,5 @@ func InitDB(c *config.AppConfig) *gorm.DB {
 
 func migrateDB(db *gorm.DB) {
 	db.AutoMigrate(&rUser.User{})
+	db.AutoMigrate(&rService.Service{})
 }
