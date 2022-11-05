@@ -3,6 +3,7 @@ package database
 import (
 	"bengcall/config"
 	rUser "bengcall/features/user/repository"
+	rVehicle "bengcall/features/vehicle/repository"
 	"fmt"
 
 	"github.com/labstack/gommon/log"
@@ -31,4 +32,5 @@ func InitDB(c *config.AppConfig) *gorm.DB {
 
 func migrateDB(db *gorm.DB) {
 	db.AutoMigrate(&rUser.User{})
+	db.AutoMigrate(&rVehicle.Vehicle{})
 }
