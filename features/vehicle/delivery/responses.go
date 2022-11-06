@@ -17,7 +17,7 @@ func FailResponse(msg string) map[string]string {
 
 type AddResponse struct {
 	ID           uint   `json:"id"`
-	Name_vehicle string `json:"name"`
+	Name_vehicle string `json:"name_vehicle"`
 }
 
 func ToResponse(basic interface{}, code string) interface{} {
