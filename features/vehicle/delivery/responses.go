@@ -16,8 +16,8 @@ func FailResponse(msg string) map[string]string {
 }
 
 type AddResponse struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID           uint   `json:"id"`
+	Name_vehicle string `json:"name"`
 }
 
 func ToResponse(basic interface{}, code string) interface{} {
@@ -25,12 +25,12 @@ func ToResponse(basic interface{}, code string) interface{} {
 	switch code {
 	case "reg":
 		cnv := basic.(domain.VehicleCore)
-		res = AddResponse{ID: cnv.ID, Name: cnv.Name}
+		res = AddResponse{ID: cnv.ID, Name_vehicle: cnv.Name_vehicle}
 	case "all":
 		var arr []AddResponse
 		cnv := basic.([]domain.VehicleCore)
 		for _, val := range cnv {
-			arr = append(arr, AddResponse{ID: val.ID, Name: val.Name})
+			arr = append(arr, AddResponse{ID: val.ID, Name_vehicle: val.Name_vehicle})
 		}
 		res = arr
 	}
