@@ -24,8 +24,8 @@ func (rq *repoQuery) AddUser(newUser domain.UserCore) (domain.UserCore, error) {
 		log.Error("error on adding user", err.Error())
 		return domain.UserCore{}, err
 	}
-	newUser = ToDomain(cnv)
-	return newUser, nil
+
+	return ToDomain(cnv), nil
 }
 
 // Delete implements domain.Repository
@@ -51,12 +51,12 @@ func (rq *repoQuery) GetMyUser(userID uint) (domain.UserCore, error) {
 
 // GetUser implements domain.Repository
 func (rq *repoQuery) GetUser(existUser domain.UserCore) (domain.UserCore, error) {
-	var resQuery User
-	if err := rq.db.First(&resQuery, "email = ?", existUser.Email).Error; err != nil {
+	var cnv User
+	if err := rq.db.Table("users").First(&cnv, "email = ?", existUser.Email).Error; err != nil {
 		log.Error("error on get user login", err.Error())
 		return domain.UserCore{}, nil
 	}
-	res := ToDomain(resQuery)
+	res := ToDomain(cnv)
 	return res, nil
 }
 

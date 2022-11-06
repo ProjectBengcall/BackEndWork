@@ -8,12 +8,12 @@ import (
 
 type User struct {
 	gorm.Model
-	Fullname string
-	Email    string
-	Password string
-	Images   string
-	Role     uint
-	Token    string
+	Fullname string `json:"fullname" validate:"required,min=3,max=20"`
+	Email    string `gorm:"unique" json:"email"  validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,containsany=1234567890" `
+	Images   string `json:"images"`
+	Role     uint   `json:"role" validate:"numeric"`
+	Token    string `json:"token" validate:"multibyte"`
 }
 
 func FromDomain(du domain.UserCore) User {
