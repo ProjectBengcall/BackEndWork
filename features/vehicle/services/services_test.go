@@ -15,21 +15,21 @@ import (
 func TestAddVehicle(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	t.Run("Sucsess Add ", func(t *testing.T) {
-		repo.On("Add", mock.Anything).Return(domain.VehicleCore{ID: uint(1), Name: "Supra 125 125cc"}, nil).Once()
+		repo.On("Add", mock.Anything).Return(domain.VehicleCore{ID: uint(1), Name_vehicle: "Supra 125 125cc"}, nil).Once()
 		srv := New(repo)
-		input := domain.VehicleCore{Name: "Supra 125 125cc"}
+		input := domain.VehicleCore{Name_vehicle: "Supra 125 125cc"}
 		res, err := srv.AddVehicle(input)
 		assert.Nil(t, err)
 		assert.NotNil(t, res)
 		assert.NotEmpty(t, res.ID, "harusnya ada id yang terbuat")
-		assert.Equal(t, input.Name, res.Name, "seharusnya nama sama")
+		assert.Equal(t, input.Name_vehicle, res.Name_vehicle, "seharusnya nama sama")
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Duplicate data", func(t *testing.T) {
 		repo.On("Add", mock.Anything).Return(domain.VehicleCore{}, errors.New("some problem on database")).Once()
 		srv := New(repo)
-		input := domain.VehicleCore{Name: "Supra 125 125cc"}
+		input := domain.VehicleCore{Name_vehicle: "Supra 125 125cc"}
 		res, err := srv.AddVehicle(input)
 		assert.NotNil(t, err)
 		assert.Empty(t, res, "karena object gagal dibuat")
@@ -42,7 +42,7 @@ func TestAddVehicle(t *testing.T) {
 func TestGetVehicle(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	t.Run("Succses Get Vehicle", func(t *testing.T) {
-		repo.On("GetAll", mock.Anything).Return([]domain.VehicleCore{{ID: uint(1), Name: "Supra 125 125cc"}}, nil).Once()
+		repo.On("GetAll", mock.Anything).Return([]domain.VehicleCore{{ID: uint(1), Name_vehicle: "Supra 125 125cc"}}, nil).Once()
 		srv := New(repo)
 		res, err := srv.GetVehicle()
 		assert.Nil(t, err)

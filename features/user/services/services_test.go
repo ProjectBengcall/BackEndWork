@@ -30,11 +30,13 @@ func TestRegister(t *testing.T) {
 
 	t.Run("Gagal Register", func(t *testing.T) {
 		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("some problem on database")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		res, err := srv.Register(domain.UserCore{})
 		assert.Empty(t, res)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "some problem on database")
+
+	})
 
 	t.Run("Validator error", func(t *testing.T) {
 		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("validation error")).Once()
@@ -52,7 +54,7 @@ func TestRegister(t *testing.T) {
 
 	t.Run("Gagal Register", func(t *testing.T) {
 		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("duplicate data")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		res, err := srv.Register(domain.UserCore{})
 		assert.Empty(t, res)
 		assert.Error(t, err)
@@ -85,7 +87,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Fail Database Error", func(t *testing.T) {
 		repo.On("GetUser", mock.Anything).Return(domain.UserCore{Password: "asgfasg"}, errors.New("table not exists")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		input := domain.UserCore{Email: "joko@gmail.com", Password: "joko"}
 		res, err := srv.Login(input)
 		assert.Empty(t, res)
@@ -96,7 +98,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Fail No Data", func(t *testing.T) {
 		repo.On("GetUser", mock.Anything).Return(domain.UserCore{Password: "asgfasg"}, errors.New("data not found")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		input := domain.UserCore{Email: "joko@gmail.com", Password: "joko"}
 		res, err := srv.Login(input)
 		assert.Empty(t, res)
@@ -120,7 +122,7 @@ func TestMyProfile(t *testing.T) {
 
 	t.Run("Failed Get User", func(t *testing.T) {
 		repo.On("GetMyUser", mock.Anything).Return(domain.UserCore{}, errors.New("data not found")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		res, err := srv.MyProfile(uint(2))
 		assert.Empty(t, res)
 		assert.Error(t, err)
@@ -130,7 +132,7 @@ func TestMyProfile(t *testing.T) {
 
 	t.Run("Failed Get User", func(t *testing.T) {
 		repo.On("GetMyUser", mock.Anything).Return(domain.UserCore{}, errors.New("table not exists")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		res, err := srv.MyProfile(uint(3))
 		assert.Empty(t, res)
 		assert.Error(t, err)
@@ -155,7 +157,7 @@ func TestUpdateProfile(t *testing.T) {
 
 	t.Run("Gagal Update Profile", func(t *testing.T) {
 		repo.On("Update", mock.Anything, mock.Anything).Return(domain.UserCore{}, errors.New("error on bcrypt password updated user")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		var input domain.UserCore
 		res, err := srv.UpdateProfile(input, 1)
 		assert.Empty(t, res)
@@ -166,7 +168,7 @@ func TestUpdateProfile(t *testing.T) {
 
 	t.Run("Gagal Update Profile", func(t *testing.T) {
 		repo.On("Update", mock.Anything, mock.Anything).Return(domain.UserCore{}, errors.New("column doesnt exists")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		var input domain.UserCore
 		res, err := srv.UpdateProfile(input, 1)
 		assert.Empty(t, res)
@@ -189,7 +191,7 @@ func TestDeactivate(t *testing.T) {
 
 	t.Run("Fail Database Error", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(errors.New("table not exists")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		err := srv.Deactivate(2)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "database error")
@@ -198,7 +200,7 @@ func TestDeactivate(t *testing.T) {
 
 	t.Run("Fail No Data", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(errors.New("data not found")).Once()
-		srv := New(repo)
+		srv := New(repo, validator.New())
 		err := srv.Deactivate(3)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "no data")

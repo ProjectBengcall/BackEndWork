@@ -1,8 +1,8 @@
 package domain
 
 type VehicleCore struct {
-	ID   uint
-	Name string
+	ID           uint
+	Name_vehicle string
 }
 
 type Repository interface {
