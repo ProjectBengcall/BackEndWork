@@ -4,7 +4,7 @@ type Core struct {
 	ID          uint
 	ServiceName string
 	Price       int
-	VehicleID   int
+	VehicleID   uint
 }
 
 type Repository interface {

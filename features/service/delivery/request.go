@@ -5,7 +5,7 @@ import "bengcall/features/service/domain"
 type ServiceFormat struct {
 	ServiceName string `json:"service_name" form:"service_name"`
 	Price       int    `json:"price" form:"price"`
-	VehicleID   int    `json:"vehicle_id" form:"vehicle_id"`
+	VehicleID   uint   `json:"vehicle_id" form:"vehicle_id"`
 }
 
 func ToDomain(i interface{}) domain.Core {

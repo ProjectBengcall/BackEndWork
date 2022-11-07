@@ -19,7 +19,7 @@ type Response struct {
 	ID          uint   `json:"id"`
 	ServiceName string `json:"service_name"`
 	Price       int    `json:"price"`
-	VehicleID   int    `json:"vehicle_id"`
+	VehicleID   uint   `json:"vehicle_id"`
 }
 
 func ToResponse(core interface{}, code string) interface{} {
