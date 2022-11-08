@@ -20,9 +20,35 @@ func New(e *echo.Echo, srv domain.Service) {
 	e.GET("/history", handler.HistoryTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.GET("/transaction/:id", handler.DetailTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.GET("/admin/transaction", handler.AllTransaction(), middleware.JWT([]byte(ck.JwtKey)))
+	e.POST("/transaction", handler.NewTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.PUT("/comment/:id", handler.AddComment(), middleware.JWT([]byte(ck.JwtKey)))
 	e.PUT("/admin/transaction/:id", handler.UpdateStatus(), middleware.JWT([]byte(ck.JwtKey)))
 	e.DELETE("/admin/transaction/:id", handler.CancelTransaction(), middleware.JWT([]byte(ck.JwtKey)))
+}
+
+func (th *transactionHandler) NewTransaction() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, role := common.ExtractToken(c)
+		if role == 0 || role == 1 {
+			var input TransactionFormat
+			if err := c.Bind(&input); err != nil {
+				return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
+			}
+
+			cnv := ToDomain(input)
+			cns := ToDom(input)
+			cnv.UserID = userID
+			res, err := th.srv.Transaction(cnv, cns)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+			return c.JSON(http.StatusCreated, SuccessResponse("Success creating new service", ToResponse(res, "post")))
+		} else if userID == 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		}
+	}
 }
 
 func (th *transactionHandler) UpdateStatus() echo.HandlerFunc {

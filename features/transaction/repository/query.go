@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bengcall/features/transaction/domain"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -16,13 +17,39 @@ func New(db *gorm.DB) domain.Repository {
 	}
 }
 
+func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailCore) (domain.TransactionDetail, error) {
+	var resQry TransactionComplete
+	var total int
+
+	for i := 0; i < len(newDtl); i++ {
+		if err := rq.db.Exec("INSERT INTO details (id, created_at, updated_at, deleted_at, vehicle_id, service_id, transaction_id, sub_total) values (?,?,?,?,?,?,?,?)",
+			nil, time.Now(), time.Now(), nil, newDtl[i].VehicleID, newDtl[i].ServiceID, newTrx.Invoice, newDtl[i].SubTotal).Error; err != nil {
+			return domain.TransactionDetail{}, err
+		}
+		total += newDtl[i].SubTotal
+	}
+
+	if err := rq.db.Exec("INSERT INTO transactions (id, created_at, updated_at, deleted_at, location, phone, address, invoice, total, schedule, status, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?)",
+		nil, time.Now(), time.Now(), nil, newTrx.Location, newTrx.Phone, newTrx.Address, newTrx.Invoice, total, newTrx.Schedule, 1, newTrx.UserID).Error; err != nil {
+		return domain.TransactionDetail{}, err
+	}
+
+	if er := rq.db.Table("transactions").Select("id", "invoice", "total", "status", "payment_token", "payment_link").Where("address = ? && user_id = ?", newTrx.Address, newTrx.UserID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+		return domain.TransactionDetail{}, er
+	}
+	res := ToDomDetail(resQry)
+	return res, nil
+}
+
 func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {
 	updateStts.ID = ID
 	var cnv Transaction = FromDomStts(updateStts)
-	if err := rq.db.Exec("UPDATE transactions SET other = ?, additional = ?, status = ? WHERE id = ?",
-		updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
+
+	if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
+		updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
 		return domain.TransactionCore{}, err
 	}
+
 	res := ToDomStts(cnv)
 	return res, nil
 }

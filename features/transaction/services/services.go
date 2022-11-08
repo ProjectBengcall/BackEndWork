@@ -3,7 +3,9 @@ package services
 import (
 	"bengcall/features/transaction/domain"
 	"errors"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/labstack/gommon/log"
 )
@@ -16,6 +18,24 @@ func New(repo domain.Repository) domain.Service {
 	return &transactionService{
 		qry: repo,
 	}
+}
+
+func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl []domain.DetailCore) (domain.TransactionDetail, error) {
+	var v int
+	rand.Seed(time.Now().UnixNano())
+	v = rand.Intn(100000)
+	invo := v
+	newTrx.Invoice = invo
+
+	res, err := ss.qry.Post(newTrx, newDtl)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			return domain.TransactionDetail{}, errors.New("rejected from database")
+		}
+		return domain.TransactionDetail{}, errors.New("some problem on database")
+	}
+
+	return res, nil
 }
 
 func (ss *transactionService) Status(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {

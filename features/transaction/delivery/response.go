@@ -51,6 +51,15 @@ type ResponseDetail struct {
 	PaymentLink  string    `json:"payment_link"`
 }
 
+type ResponsePost struct {
+	ID           uint   `json:"id"`
+	Invoice      int    `json:"invoice"`
+	Total        int    `json:"total"`
+	Status       int    `json:"status"`
+	PaymentToken string `json:"payment_token"`
+	PaymentLink  string `json:"payment_link"`
+}
+
 type ResponseStts struct {
 	ID     uint `json:"id"`
 	Status int  `json:"status"`
@@ -73,6 +82,9 @@ func ToResponse(core interface{}, code string) interface{} {
 	case "detail":
 		cnv := core.(domain.TransactionDetail)
 		res = ResponseDetail{ID: cnv.ID, Location: cnv.Location, Fullname: cnv.Fullname, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule, Name_vehicle: cnv.Name_vehicle, ServiceName: cnv.ServiceName, Other: cnv.Other, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink}
+	case "post":
+		cnv := core.(domain.TransactionDetail)
+		res = ResponsePost{ID: cnv.ID, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink}
 	case "all":
 		var arr []ResponseAll
 		cnv := core.([]domain.TransactionAll)
