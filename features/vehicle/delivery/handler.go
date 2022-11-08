@@ -36,6 +36,9 @@ func (vh *vehicleHandler) AddVehicle() echo.HandlerFunc {
 			if err := c.Bind(&input); err != nil {
 				return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
 			}
+			if strings.TrimSpace(input.Name_vehicle) == "" {
+				return c.JSON(http.StatusBadRequest, FailResponse("input empty"))
+			}
 			cnv := ToDomain(input)
 			res, err := vh.srv.AddVehicle(cnv)
 			if err != nil {
@@ -50,24 +53,18 @@ func (vh *vehicleHandler) AddVehicle() echo.HandlerFunc {
 func (bs *vehicleHandler) DeleteVehicle() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
-		if role != 1 {
-			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		if role == 1 {
+			ID, _ := strconv.Atoi(c.Param("id"))
+			err := bs.srv.DeleteVehicle(uint(ID))
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+			return c.JSON(http.StatusAccepted, FailResponse("Success delete service type"))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
-			ID, err := strconv.Atoi(c.Param("id"))
-			err = bs.srv.DeleteVehicle(uint(ID))
-			if err != nil {
-				if strings.Contains(err.Error(), "found") {
-					c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
-				} else {
-					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
-				}
-			} else {
-				return c.JSON(http.StatusAccepted, FailResponse("success delete vehicle"))
-			}
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		}
-		return nil
 	}
 }
 
