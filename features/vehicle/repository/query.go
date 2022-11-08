@@ -32,9 +32,8 @@ func (rq *repoQuery) Add(newItem domain.VehicleCore) (domain.VehicleCore, error)
 
 // Delete implements domain.Repository
 func (rq *repoQuery) Delete(vehicleID uint) error {
-	var data Vehicle
-	if err := rq.db.Delete(&data, "id = ?", vehicleID).Error; err != nil {
-		log.Error("error on deleting user", err.Error())
+	var resQry Vehicle
+	if err := rq.db.Where("id = ?", vehicleID).Delete(&resQry).Error; err != nil {
 		return err
 	}
 	return nil
