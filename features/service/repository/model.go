@@ -10,7 +10,7 @@ type Service struct {
 	gorm.Model
 	ServiceName string
 	Price       int
-	VehicleID   int
+	VehicleID   uint
 }
 
 func FromDomain(du domain.Core) Service {

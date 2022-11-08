@@ -5,6 +5,9 @@ import (
 	dService "bengcall/features/service/delivery"
 	rService "bengcall/features/service/repository"
 	sService "bengcall/features/service/services"
+	dTrx "bengcall/features/transaction/delivery"
+	rTrx "bengcall/features/transaction/repository"
+	sTrx "bengcall/features/transaction/services"
 	dUser "bengcall/features/user/delivery"
 	rUser "bengcall/features/user/repository"
 	sUser "bengcall/features/user/services"
@@ -32,6 +35,9 @@ func main() {
 	mdlService := rService.New(db)
 	serService := sService.New(mdlService)
 
+	mdlTrx := rTrx.New(db)
+	serTrx := sTrx.New(mdlTrx)
+
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 	e.Use(middleware.Logger())
@@ -39,6 +45,7 @@ func main() {
 	dService.New(e, serService)
 	dUser.New(e, serUser)
 	dVehicle.New(e, serVehicle)
+	dTrx.New(e, serTrx)
 
 	e.Logger.Fatal(e.Start(":8000"))
 
