@@ -92,6 +92,7 @@ type Repository interface {
 	GetHistory(userID uint) ([]TransactionHistory, error)
 	GetDetail(ID uint) (TransactionDetail, error)
 	Post(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)
+	PutScss(ID uint) error
 	PutStts(updateStts TransactionCore, ID uint) (TransactionCore, error)
 	PutCmmt(updateCmmt TransactionCore, ID uint) (TransactionCore, error)
 	Delete(ID uint) error
@@ -103,6 +104,7 @@ type Service interface {
 	History(userID uint) ([]TransactionHistory, error)
 	Detail(ID uint) (TransactionDetail, error)
 	Transaction(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)
+	Success(ID uint) error
 	Status(updateStts TransactionCore, ID uint) (TransactionCore, error)
 	Comment(updateCmmt TransactionCore, ID uint) (TransactionCore, error)
 	Cancel(ID uint) error

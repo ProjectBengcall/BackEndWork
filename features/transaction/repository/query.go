@@ -2,8 +2,11 @@ package repository
 
 import (
 	"bengcall/features/transaction/domain"
+	"strconv"
 	"time"
 
+	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/snap"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +20,8 @@ func New(db *gorm.DB) domain.Repository {
 	}
 }
 
+var s snap.Client
+
 func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailCore) (domain.TransactionDetail, error) {
 	var resQry TransactionComplete
 	var total int
@@ -29,28 +34,92 @@ func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailC
 		total += newDtl[i].SubTotal
 	}
 
-	if err := rq.db.Exec("INSERT INTO transactions (id, created_at, updated_at, deleted_at, location, phone, address, invoice, total, schedule, status, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?)",
-		nil, time.Now(), time.Now(), nil, newTrx.Location, newTrx.Phone, newTrx.Address, newTrx.Invoice, total, newTrx.Schedule, 1, newTrx.UserID).Error; err != nil {
+	v := strconv.Itoa(newTrx.Invoice)
+
+	// 1. Initiate Snap client
+	s.New("SB-Mid-server-eKSCGMJJG-IEL_LscFEV9-nP", midtrans.Sandbox)
+
+	// 2. Initiate Snap request param
+	req := &snap.Request{
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  v,
+			GrossAmt: int64(total),
+		},
+		CreditCard: &snap.CreditCardDetails{
+			Secure: true,
+		},
+	}
+
+	// 3. Execute request create Snap transaction to Midtrans Snap API
+	snapResp, _ := s.CreateTransaction(req)
+
+	newTrx.PaymentToken = snapResp.Token
+	newTrx.PaymentLink = snapResp.RedirectURL
+
+	if err := rq.db.Exec("INSERT INTO transactions (id, created_at, updated_at, deleted_at, location, phone, address, invoice, total, payment_token, payment_link, schedule, status, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		nil, time.Now(), time.Now(), nil, newTrx.Location, newTrx.Phone, newTrx.Address, newTrx.Invoice, total, newTrx.PaymentToken, newTrx.PaymentLink, newTrx.Schedule, 1, newTrx.UserID).Error; err != nil {
 		return domain.TransactionDetail{}, err
 	}
 
-	if er := rq.db.Table("transactions").Select("id", "invoice", "total", "status", "payment_token", "payment_link").Where("address = ? && user_id = ?", newTrx.Address, newTrx.UserID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+	if er := rq.db.Table("transactions").Select("id", "invoice", "total", "status", "payment_token", "payment_link").Where("invoice = ?", newTrx.Invoice).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
 		return domain.TransactionDetail{}, er
 	}
 	res := ToDomDetail(resQry)
 	return res, nil
 }
 
+func (rq *repoQuery) PutScss(ID uint) error {
+	if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE invoice = ?", 3, ID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {
 	updateStts.ID = ID
-	var cnv Transaction = FromDomStts(updateStts)
+	var resQry Transaction
 
 	if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
 		updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
 		return domain.TransactionCore{}, err
 	}
 
-	res := ToDomStts(cnv)
+	if er := rq.db.Table("transactions").Select("invoice", "total").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+		return domain.TransactionCore{}, er
+	}
+
+	v := strconv.Itoa(resQry.Invoice)
+
+	// 1. Initiate Snap client
+	s.New("SB-Mid-server-eKSCGMJJG-IEL_LscFEV9-nP", midtrans.Sandbox)
+
+	// 2. Initiate Snap request param
+	req := &snap.Request{
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  v,
+			GrossAmt: int64(resQry.Total),
+		},
+		CreditCard: &snap.CreditCardDetails{
+			Secure: true,
+		},
+	}
+
+	// 3. Execute request create Snap transaction to Midtrans Snap API
+	snapResp, _ := s.CreateTransaction(req)
+
+	newPaymentToken := snapResp.Token
+	newPaymentLink := snapResp.RedirectURL
+
+	if err := rq.db.Exec("UPDATE transactions SET payment_token = ?, payment_link = ? WHERE id = ?",
+		newPaymentToken, newPaymentLink, ID).Error; err != nil {
+		return domain.TransactionCore{}, err
+	}
+
+	if er := rq.db.Table("transactions").Select("id", "payment_token", "payment_link", "status").Where("id = ?", ID).Model(&Transaction{}).Find(&resQry).Error; er != nil {
+		return domain.TransactionCore{}, er
+	}
+
+	res := ToDomStts(resQry)
 	return res, nil
 }
 

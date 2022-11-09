@@ -61,8 +61,10 @@ type ResponsePost struct {
 }
 
 type ResponseStts struct {
-	ID     uint `json:"id"`
-	Status int  `json:"status"`
+	ID           uint   `json:"id"`
+	PaymentToken string `json:"payment_token"`
+	PaymentLink  string `json:"payment_link"`
+	Status       int    `json:"status"`
 }
 
 type ResponseCmmt struct {
@@ -75,7 +77,7 @@ func ToResponse(core interface{}, code string) interface{} {
 	switch code {
 	case "stts":
 		cnv := core.(domain.TransactionCore)
-		res = ResponseStts{ID: cnv.ID, Status: cnv.Status}
+		res = ResponseStts{ID: cnv.ID, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink, Status: cnv.Status}
 	case "cmmt":
 		cnv := core.(domain.TransactionCore)
 		res = ResponseCmmt{ID: cnv.ID, Comment: cnv.Comment}
