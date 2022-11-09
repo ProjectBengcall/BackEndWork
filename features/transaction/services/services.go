@@ -21,10 +21,9 @@ func New(repo domain.Repository) domain.Service {
 }
 
 func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl []domain.DetailCore) (domain.TransactionDetail, error) {
-	var v int
+	var invo int
 	rand.Seed(time.Now().UnixNano())
-	v = rand.Intn(100000)
-	invo := v
+	invo = rand.Intn(100000)
 	newTrx.Invoice = invo
 
 	res, err := ss.qry.Post(newTrx, newDtl)
@@ -36,6 +35,19 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 	}
 
 	return res, nil
+}
+
+func (ss *transactionService) Success(ID uint) error {
+	err := ss.qry.PutScss(ID)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			return errors.New("Rejected from Database")
+		}
+		return errors.New("Some Problem on Database")
+	}
+
+	return nil
 }
 
 func (ss *transactionService) Status(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {

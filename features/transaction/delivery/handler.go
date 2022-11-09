@@ -21,6 +21,7 @@ func New(e *echo.Echo, srv domain.Service) {
 	e.GET("/transaction/:id", handler.DetailTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.GET("/admin/transaction", handler.AllTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.POST("/transaction", handler.NewTransaction(), middleware.JWT([]byte(ck.JwtKey)))
+	e.POST("/transaction/success", handler.TransactionSuccess())
 	e.PUT("/comment/:id", handler.AddComment(), middleware.JWT([]byte(ck.JwtKey)))
 	e.PUT("/admin/transaction/:id", handler.UpdateStatus(), middleware.JWT([]byte(ck.JwtKey)))
 	e.DELETE("/admin/transaction/:id", handler.CancelTransaction(), middleware.JWT([]byte(ck.JwtKey)))
@@ -48,6 +49,21 @@ func (th *transactionHandler) NewTransaction() echo.HandlerFunc {
 		} else {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		}
+	}
+}
+
+func (th *transactionHandler) TransactionSuccess() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var trx TransactionSuccess
+		if trx.Status == "capture" || trx.Status == "settlement" {
+			ID := trx.Order
+			err := th.srv.Success(uint(ID))
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+			return c.JSON(http.StatusCreated, FailResponse("Transaction Success"))
+		}
+		return c.JSON(http.StatusCreated, FailResponse("Transaction Error"))
 	}
 }
 

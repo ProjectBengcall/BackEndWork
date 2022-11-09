@@ -13,6 +13,11 @@ type TransactionFormat struct {
 	Detail   []DetailFormat `json:"detail" form:"detail"`
 }
 
+type TransactionSuccess struct {
+	Status string `json:"transaction_status" form:"transaction_status"`
+	Order  int    `json:"order_id" form:"order_id"`
+}
+
 type DetailFormat struct {
 	VehicleID uint `json:"vehicle_id" form:"vehicle_id"`
 	ServiceID uint `json:"service_id" form:"service_id"`
