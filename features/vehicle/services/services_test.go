@@ -27,16 +27,28 @@ func TestAddVehicle(t *testing.T) {
 	})
 
 	t.Run("Duplicate data", func(t *testing.T) {
-		repo.On("Add", mock.Anything).Return(domain.VehicleCore{}, errors.New("some problem on database")).Once()
+		repo.On("Add", mock.Anything).Return(domain.VehicleCore{}, errors.New("there's duplicate data")).Once()
 		srv := New(repo)
 		input := domain.VehicleCore{Name_vehicle: "Supra 125 125cc"}
 		res, err := srv.AddVehicle(input)
 		assert.NotNil(t, err)
 		assert.Empty(t, res, "karena object gagal dibuat")
 		assert.Equal(t, uint(0), res.ID, "id harusnya 0 karena tidak ada data")
+		assert.EqualError(t, err, "rejected from database")
 		repo.AssertExpectations(t)
 	})
 
+	t.Run("Problem", func(t *testing.T) {
+		repo.On("Add", mock.Anything).Return(domain.VehicleCore{}, errors.New("cannot connect")).Once()
+		srv := New(repo)
+		input := domain.VehicleCore{Name_vehicle: "Supra 125 125cc"}
+		res, err := srv.AddVehicle(input)
+		assert.NotNil(t, err)
+		assert.Empty(t, res, "karena object gagal dibuat")
+		assert.Equal(t, uint(0), res.ID, "id harusnya 0 karena tidak ada data")
+		assert.EqualError(t, err, "some problem on database")
+		repo.AssertExpectations(t)
+	})
 }
 
 func TestGetVehicle(t *testing.T) {

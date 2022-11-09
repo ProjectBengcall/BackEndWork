@@ -29,12 +29,12 @@ func TestRegister(t *testing.T) {
 	})
 
 	t.Run("Gagal Register", func(t *testing.T) {
-		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("some problem on database")).Once()
+		repo.On("AddUser", mock.Anything).Return(domain.UserCore{}, errors.New("email can't be use")).Once()
 		srv := New(repo, validator.New())
 		res, err := srv.Register(domain.UserCore{})
 		assert.Empty(t, res)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "some problem on database")
+		assert.EqualError(t, err, "invalid email")
 
 	})
 
@@ -81,7 +81,7 @@ func TestLogin(t *testing.T) {
 		input := domain.UserCore{Email: "joko@gmail.com", Password: "joko"}
 		res, err := srv.Login(input)
 		assert.Empty(t, res)
-		assert.EqualError(t, err, "password not match")
+		assert.EqualError(t, err, "email not found")
 		repo.AssertExpectations(t)
 	})
 
@@ -92,7 +92,7 @@ func TestLogin(t *testing.T) {
 		res, err := srv.Login(input)
 		assert.Empty(t, res)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "database error")
+		assert.EqualError(t, err, "Failed. Email or Password not found.")
 		repo.AssertExpectations(t)
 	})
 
@@ -103,7 +103,7 @@ func TestLogin(t *testing.T) {
 		res, err := srv.Login(input)
 		assert.Empty(t, res)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "no data")
+		assert.EqualError(t, err, "Failed. Email or Password not found.")
 		repo.AssertExpectations(t)
 	})
 }
