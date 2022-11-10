@@ -154,7 +154,7 @@ func (rq *repoQuery) GetHistory(userID uint) ([]domain.TransactionHistory, error
 
 func (rq *repoQuery) GetDetail(ID uint) (domain.TransactionDetail, error) {
 	var resQry TransactionComplete
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname", "vehicles.name_vehicle", "services.service_name").Joins("join users on users.id=transactions.user_id").Joins("join details on details.transaction_id=transactions.id").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname", "vehicles.name_vehicle", "services.service_name").Joins("join users on users.id=transactions.user_id").Joins("join details on details.transaction_id=transactions.invoice").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
 		return domain.TransactionDetail{}, err
 	}
 	res := ToDomDetail(resQry)
