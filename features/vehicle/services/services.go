@@ -20,6 +20,20 @@ func New(repo domain.Repository) domain.Service {
 	}
 }
 
+// GetService implements domain.Service
+func (vs *vehicleService) GetService() ([]domain.VehicleCore, []domain.ServiceVehicle, error) {
+	resVehicle, err := vs.qry.GetAll()
+	if err != nil {
+		return nil, nil, errors.New("no data")
+	}
+	resService, err := vs.qry.Get()
+	if err != nil {
+		return nil, nil, errors.New("get service error")
+	}
+
+	return resVehicle, resService, nil
+}
+
 // AddVehicle implements domain.Service
 func (vs *vehicleService) AddVehicle(newItem domain.VehicleCore) (domain.VehicleCore, error) {
 	res, err := vs.qry.Add(newItem)

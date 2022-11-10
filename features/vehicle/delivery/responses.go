@@ -20,6 +20,12 @@ type AddResponse struct {
 	Name_vehicle string `json:"name_vehicle"`
 }
 
+type GetResponse struct {
+	ID           uint   `json:"id"`
+	Name_vehicle string `json:"name_vehicle"`
+	Service      []domain.ServiceVehicle
+}
+
 func ToResponse(basic interface{}, code string) interface{} {
 	var res interface{}
 	switch code {
@@ -35,5 +41,21 @@ func ToResponse(basic interface{}, code string) interface{} {
 		res = arr
 	}
 
+	return res
+}
+
+func ToResponseGet(vehicle interface{}, service interface{}) interface{} {
+	var res interface{}
+	var resService []domain.ServiceVehicle
+	cnvService := service.([]domain.ServiceVehicle)
+
+	for _, val := range cnvService {
+		resService = append(resService, domain.ServiceVehicle{ID: val.ID, ServiceName: val.ServiceName, Price: val.Price, VehicleID: val.VehicleID})
+	}
+
+	cnvVehicle := vehicle.(domain.VehicleCore)
+	resVehicle := GetResponse{ID: cnvVehicle.ID, Name_vehicle: cnvVehicle.Name_vehicle, Service: resService}
+
+	res = resVehicle
 	return res
 }

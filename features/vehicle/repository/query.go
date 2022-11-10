@@ -17,6 +17,18 @@ func New(db *gorm.DB) domain.Repository {
 	}
 }
 
+// Get implements domain.Repository
+func (rq *repoQuery) Get() ([]domain.ServiceVehicle, error) {
+	var resQry []Service
+	if err := rq.db.Find(&resQry).Error; err != nil {
+		log.Error("Error on All user", err.Error())
+		return nil, err
+	}
+	// selesai dari DB
+	res := ToDomainArraySer(resQry)
+	return res, nil
+}
+
 // Add implements domain.Repository
 func (rq *repoQuery) Add(newItem domain.VehicleCore) (domain.VehicleCore, error) {
 	var cnv Vehicle

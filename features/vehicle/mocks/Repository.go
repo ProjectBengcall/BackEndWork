@@ -48,6 +48,29 @@ func (_m *Repository) Delete(vehicleID uint) error {
 	return r0
 }
 
+// Get provides a mock function with given fields:
+func (_m *Repository) Get() ([]domain.VehicleCore, error) {
+	ret := _m.Called()
+
+	var r0 []domain.VehicleCore
+	if rf, ok := ret.Get(0).(func() []domain.VehicleCore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.VehicleCore)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAll provides a mock function with given fields:
 func (_m *Repository) GetAll() ([]domain.VehicleCore, error) {
 	ret := _m.Called()
