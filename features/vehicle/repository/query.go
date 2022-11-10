@@ -17,6 +17,19 @@ func New(db *gorm.DB) domain.Repository {
 	}
 }
 
+// Get implements domain.Repository
+func (rq *repoQuery) Get() ([]domain.ServiceVehicle, error) {
+	var resQry []Service
+
+	if err := rq.db.Table("vehicles").Select("vehicles.id", "vehicles.name_vehicle", "services.service_name", "services.price").Joins("join services on services.vehicle_id=vehicles.id").Order("vehicles.name_vehicle asc").Where("services.deleted_at IS NULL").Model(&Service{}).Find(&resQry).Error; err != nil {
+		return nil, err
+	}
+
+	// selesai dari DB
+	res := ToDomainArraySer(resQry)
+	return res, nil
+}
+
 // Add implements domain.Repository
 func (rq *repoQuery) Add(newItem domain.VehicleCore) (domain.VehicleCore, error) {
 	var cnv Vehicle

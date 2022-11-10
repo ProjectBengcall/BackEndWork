@@ -87,6 +87,9 @@ func ToResponse(core interface{}, code string) interface{} {
 	case "post":
 		cnv := core.(domain.TransactionDetail)
 		res = ResponsePost{ID: cnv.ID, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink}
+	case "progress":
+		cnv := core.(domain.TransactionHistory)
+		res = ResponseHistory{ID: cnv.ID, Invoice: cnv.Invoice, Schedule: cnv.Schedule, Total: cnv.Total}
 	case "all":
 		var arr []ResponseAll
 		cnv := core.([]domain.TransactionAll)

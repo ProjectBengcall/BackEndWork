@@ -224,6 +224,38 @@ func TestHistory(t *testing.T) {
 	})
 }
 
+func TestMy(t *testing.T) {
+	repo := new(mocks.Repository)
+	trx := domain.TransactionHistory{ID: uint(1), Schedule: time.Now(), Invoice: 983672, Total: 150000}
+
+	t.Run("Success", func(t *testing.T) {
+		repo.On("GetMy", uint(1)).Return(trx, nil).Once()
+		srv := New(repo)
+		_, err := srv.My(uint(1))
+		assert.NoError(t, err)
+		assert.Nil(t, err)
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("Failed", func(t *testing.T) {
+		repo.On("GetMy", uint(2)).Return(domain.TransactionHistory{}, errors.New("table not exists")).Once()
+		srv := New(repo)
+		_, err := srv.My(uint(2))
+		assert.Error(t, err)
+		assert.EqualError(t, err, "Database Error")
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("Failed", func(t *testing.T) {
+		repo.On("GetMy", uint(3)).Return(domain.TransactionHistory{}, errors.New("data not found")).Once()
+		srv := New(repo)
+		_, err := srv.My(uint(3))
+		assert.Error(t, err)
+		assert.EqualError(t, err, "No Data")
+		repo.AssertExpectations(t)
+	})
+}
+
 func TestDetail(t *testing.T) {
 	repo := new(mocks.Repository)
 	trx := domain.TransactionDetail{ID: uint(1), Schedule: time.Now(), Invoice: 983672, Total: 150000}

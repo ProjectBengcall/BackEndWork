@@ -88,7 +88,7 @@ type TransactionDetail struct {
 
 type Repository interface {
 	GetAll() ([]TransactionAll, error)
-	//GetMy(userID uint) (TransactionDetail, error)
+	GetMy(userID uint) (TransactionHistory, error)
 	GetHistory(userID uint) ([]TransactionHistory, error)
 	GetDetail(ID uint) (TransactionDetail, error)
 	Post(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)
@@ -100,7 +100,7 @@ type Repository interface {
 
 type Service interface {
 	All() ([]TransactionAll, error)
-	//My(userID uint) (TransactionDetail, error)
+	My(userID uint) (TransactionHistory, error)
 	History(userID uint) ([]TransactionHistory, error)
 	Detail(ID uint) (TransactionDetail, error)
 	Transaction(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)

@@ -94,6 +94,27 @@ func (_m *Repository) GetHistory(userID uint) ([]domain.TransactionHistory, erro
 	return r0, r1
 }
 
+// GetMy provides a mock function with given fields: userID
+func (_m *Repository) GetMy(userID uint) (domain.TransactionHistory, error) {
+	ret := _m.Called(userID)
+
+	var r0 domain.TransactionHistory
+	if rf, ok := ret.Get(0).(func(uint) domain.TransactionHistory); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(domain.TransactionHistory)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Post provides a mock function with given fields: newTrx, newDtl
 func (_m *Repository) Post(newTrx domain.TransactionCore, newDtl []domain.DetailCore) (domain.TransactionDetail, error) {
 	ret := _m.Called(newTrx, newDtl)

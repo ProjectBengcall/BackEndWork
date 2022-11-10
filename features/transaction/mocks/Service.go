@@ -115,6 +115,27 @@ func (_m *Service) History(userID uint) ([]domain.TransactionHistory, error) {
 	return r0, r1
 }
 
+// My provides a mock function with given fields: userID
+func (_m *Service) My(userID uint) (domain.TransactionHistory, error) {
+	ret := _m.Called(userID)
+
+	var r0 domain.TransactionHistory
+	if rf, ok := ret.Get(0).(func(uint) domain.TransactionHistory); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(domain.TransactionHistory)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Status provides a mock function with given fields: updateStts, ID
 func (_m *Service) Status(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {
 	ret := _m.Called(updateStts, ID)

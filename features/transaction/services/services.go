@@ -100,7 +100,19 @@ func (ss *transactionService) History(userID uint) ([]domain.TransactionHistory,
 			return nil, errors.New("No Data")
 		}
 	}
+	return res, nil
+}
 
+func (ss *transactionService) My(userID uint) (domain.TransactionHistory, error) {
+	res, err := ss.qry.GetMy(userID)
+	if err != nil {
+		log.Error(err.Error())
+		if strings.Contains(err.Error(), "table") {
+			return domain.TransactionHistory{}, errors.New("Database Error")
+		} else if strings.Contains(err.Error(), "found") {
+			return domain.TransactionHistory{}, errors.New("No Data")
+		}
+	}
 	return res, nil
 }
 

@@ -20,6 +20,7 @@ func New(e *echo.Echo, srv domain.Service) {
 	handler := vehicleHandler{srv: srv}
 	e.POST("/admin/vehicle", handler.AddVehicle(), middleware.JWT([]byte(config.JwtKey)))
 	e.GET("/vehicle", handler.GetVehicle(), middleware.JWT([]byte(config.JwtKey)))
+	e.GET("/vehicleservice", handler.GetService(), middleware.JWT([]byte(config.JwtKey)))
 	e.DELETE("/admin/vehicle/:id", handler.DeleteVehicle(), middleware.JWT([]byte(config.JwtKey)))
 
 }
@@ -83,6 +84,27 @@ func (bs *vehicleHandler) GetVehicle() echo.HandlerFunc {
 				}
 			} else {
 				return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle", ToResponse(res, "all")))
+			}
+		}
+		return nil
+	}
+}
+
+func (bs *vehicleHandler) GetService() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, _ := common.ExtractToken(c)
+		if userID == 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else {
+			res, err := bs.srv.GetService()
+			if err != nil {
+				if strings.Contains(err.Error(), "found") {
+					c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+				} else {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+			} else {
+				return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle + service", ToResponse(res, "vs")))
 			}
 		}
 		return nil
