@@ -143,7 +143,7 @@ func (th *transactionHandler) MyTransaction() echo.HandlerFunc {
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 			}
-			return c.JSON(http.StatusOK, SuccessResponse("Success get all transaction data", ToResponse(res, "history")))
+			return c.JSON(http.StatusOK, SuccessResponse("Success get my transaction", ToResponse(res, "progress")))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
