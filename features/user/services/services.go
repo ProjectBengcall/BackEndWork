@@ -3,8 +3,10 @@ package services
 import (
 	"bengcall/features/user/domain"
 	rep "bengcall/features/user/repository"
+	"bengcall/utils/helper"
 	"errors"
 	lo "log"
+	"mime/multipart"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -115,7 +117,7 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 }
 
 // UpdateProfile implements domain.Service
-func (us *userService) UpdateProfile(updatedUser domain.UserCore, userID uint) (domain.UserCore, error) {
+func (us *userService) UpdateProfile(updatedUser domain.UserCore, file multipart.File, fileheader *multipart.FileHeader, userID uint) (domain.UserCore, error) {
 	if updatedUser.Password != "" {
 		generate, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -123,6 +125,14 @@ func (us *userService) UpdateProfile(updatedUser domain.UserCore, userID uint) (
 			return domain.UserCore{}, errors.New("cannot encrypt password")
 		}
 		updatedUser.Password = string(generate)
+	}
+
+	if fileheader != nil {
+		res, err := helper.UploadProfile(file, fileheader)
+		if err != nil {
+			return domain.UserCore{}, err
+		}
+		updatedUser.Images = res
 	}
 
 	res, err := us.qry.Update(updatedUser, userID)

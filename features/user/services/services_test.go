@@ -4,6 +4,7 @@ import (
 	"bengcall/features/user/domain"
 	"bengcall/features/user/mocks"
 	"errors"
+	"mime/multipart"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -142,14 +143,17 @@ func TestMyProfile(t *testing.T) {
 }
 
 func TestUpdateProfile(t *testing.T) {
+	var file multipart.File
+	var FileHeader *multipart.FileHeader
 	repo := mocks.NewRepository(t)
+
 	t.Run("Sukses Update User", func(t *testing.T) {
 		repo.On("Update", mock.Anything, mock.Anything).Return(domain.UserCore{ID: uint(1), Fullname: "joko soleh", Password: "joko",
 			Email: "joko@gmail.com"}, nil).Once()
 		srv := New(repo, validator.New())
 		input := domain.UserCore{ID: uint(1), Fullname: "joko soleh", Password: "joko",
 			Email: "joko@gmail.com"}
-		res, err := srv.UpdateProfile(input, 1)
+		res, err := srv.UpdateProfile(input, file, FileHeader, 1)
 		assert.Nil(t, err)
 		assert.NotEmpty(t, res)
 		repo.AssertExpectations(t)
@@ -159,7 +163,7 @@ func TestUpdateProfile(t *testing.T) {
 		repo.On("Update", mock.Anything, mock.Anything).Return(domain.UserCore{}, errors.New("error on bcrypt password updated user")).Once()
 		srv := New(repo, validator.New())
 		var input domain.UserCore
-		res, err := srv.UpdateProfile(input, 1)
+		res, err := srv.UpdateProfile(input, file, FileHeader, 1)
 		assert.Empty(t, res)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "some problem on database")
@@ -170,7 +174,7 @@ func TestUpdateProfile(t *testing.T) {
 		repo.On("Update", mock.Anything, mock.Anything).Return(domain.UserCore{}, errors.New("column doesnt exists")).Once()
 		srv := New(repo, validator.New())
 		var input domain.UserCore
-		res, err := srv.UpdateProfile(input, 1)
+		res, err := srv.UpdateProfile(input, file, FileHeader, 1)
 		assert.Empty(t, res)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "rejected from database")
