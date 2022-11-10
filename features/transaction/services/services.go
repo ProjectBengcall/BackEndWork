@@ -116,18 +116,18 @@ func (ss *transactionService) My(userID uint) (domain.TransactionHistory, error)
 	return res, nil
 }
 
-func (ss *transactionService) Detail(ID uint) (domain.TransactionDetail, error) {
-	res, err := ss.qry.GetDetail(ID)
+func (ss *transactionService) Detail(ID uint) (domain.TransactionDetail, []domain.DetailCores, error) {
+	res, dtl, err := ss.qry.GetDetail(ID)
 	if err != nil {
 		log.Error(err.Error())
 		if strings.Contains(err.Error(), "table") {
-			return domain.TransactionDetail{}, errors.New("Database Error")
+			return domain.TransactionDetail{}, nil, errors.New("Database Error")
 		} else if strings.Contains(err.Error(), "found") {
-			return domain.TransactionDetail{}, errors.New("No Data")
+			return domain.TransactionDetail{}, nil, errors.New("No Data")
 		}
 	}
 
-	return res, nil
+	return res, dtl, nil
 }
 
 func (ss *transactionService) Cancel(ID uint) error {

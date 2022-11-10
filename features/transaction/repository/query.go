@@ -154,20 +154,29 @@ func (rq *repoQuery) GetMy(userID uint) (domain.TransactionHistory, error) {
 
 func (rq *repoQuery) GetHistory(userID uint) ([]domain.TransactionHistory, error) {
 	var resQry []TransactionComplete
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ?", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status = 3", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
 		return nil, err
 	}
 	res := ToDomainHistory(resQry)
 	return res, nil
 }
 
-func (rq *repoQuery) GetDetail(ID uint) (domain.TransactionDetail, error) {
+func (rq *repoQuery) GetDetail(ID uint) (domain.TransactionDetail, []domain.DetailCores, error) {
 	var resQry TransactionComplete
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname", "vehicles.name_vehicle", "services.service_name").Joins("join users on users.id=transactions.user_id").Joins("join details on details.transaction_id=transactions.invoice").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
-		return domain.TransactionDetail{}, err
+	var dtlQry []Details
+	// if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname", "vehicles.name_vehicle", "services.service_name").Joins("join users on users.id=transactions.user_id").Joins("join details on details.transaction_id=transactions.invoice").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+	// 	return domain.TransactionDetail{}, err
+	// }
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+		return domain.TransactionDetail{}, nil, err
 	}
+	if err := rq.db.Table("details").Select("details.id", "vehicles.name_vehicle", "services.service_name", "details.transaction_id", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Model(&Details{}).Find(&dtlQry).Error; err != nil {
+		return domain.TransactionDetail{}, nil, err
+	}
+
+	dtl := ToDomDetails(dtlQry)
 	res := ToDomDetail(resQry)
-	return res, nil
+	return res, dtl, nil
 }
 
 func (rq *repoQuery) Delete(ID uint) error {

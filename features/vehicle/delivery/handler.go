@@ -96,7 +96,7 @@ func (bs *vehicleHandler) GetService() echo.HandlerFunc {
 		if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
-			res, err := bs.srv.GetService()
+			ver, ser, err := bs.srv.GetService()
 			if err != nil {
 				if strings.Contains(err.Error(), "found") {
 					c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
@@ -104,7 +104,7 @@ func (bs *vehicleHandler) GetService() echo.HandlerFunc {
 					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 				}
 			} else {
-				return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle + service", ToResponse(res, "vs")))
+				return c.JSON(http.StatusOK, SuccessResponse("success get all vehicle + service", ToResponseGet(ver, ser, "vs")))
 			}
 		}
 		return nil

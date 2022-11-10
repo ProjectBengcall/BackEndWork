@@ -47,9 +47,9 @@ type TransactionCores struct {
 
 type DetailCores struct {
 	ID            uint
-	VehicleID     uint
-	ServiceID     uint
-	TransactionID uint
+	Name_vehicle  string
+	ServiceName   string
+	TransactionID int
 	SubTotal      int
 }
 
@@ -90,7 +90,7 @@ type Repository interface {
 	GetAll() ([]TransactionAll, error)
 	GetMy(userID uint) (TransactionHistory, error)
 	GetHistory(userID uint) ([]TransactionHistory, error)
-	GetDetail(ID uint) (TransactionDetail, error)
+	GetDetail(ID uint) (TransactionDetail, []DetailCores, error)
 	Post(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)
 	PutScss(ID uint) error
 	PutStts(updateStts TransactionCore, ID uint) (TransactionCore, error)
@@ -102,7 +102,7 @@ type Service interface {
 	All() ([]TransactionAll, error)
 	My(userID uint) (TransactionHistory, error)
 	History(userID uint) ([]TransactionHistory, error)
-	Detail(ID uint) (TransactionDetail, error)
+	Detail(ID uint) (TransactionDetail, []DetailCores, error)
 	Transaction(newTrx TransactionCore, newDtl []DetailCore) (TransactionDetail, error)
 	Success(ID uint) error
 	Status(updateStts TransactionCore, ID uint) (TransactionCore, error)

@@ -32,6 +32,14 @@ type Detail struct {
 	SubTotal      int
 }
 
+type Details struct {
+	gorm.Model
+	Name_vehicle  string
+	ServiceName   string
+	TransactionID int
+	SubTotal      int
+}
+
 type TransactionComplete struct {
 	gorm.Model
 	Location     int
@@ -123,6 +131,14 @@ func ToDomainHistory(ta []TransactionComplete) []domain.TransactionHistory {
 	var res []domain.TransactionHistory
 	for _, val := range ta {
 		res = append(res, domain.TransactionHistory{ID: val.ID, Schedule: val.Schedule, Invoice: val.Invoice, Total: val.Total})
+	}
+	return res
+}
+
+func ToDomDetails(d []Details) []domain.DetailCores {
+	var res []domain.DetailCores
+	for _, val := range d {
+		res = append(res, domain.DetailCores{ID: val.ID, Name_vehicle: val.Name_vehicle, ServiceName: val.ServiceName, TransactionID: val.TransactionID, SubTotal: val.SubTotal})
 	}
 	return res
 }
