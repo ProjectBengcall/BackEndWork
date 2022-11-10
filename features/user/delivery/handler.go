@@ -4,9 +4,7 @@ import (
 	ck "bengcall/config"
 	"bengcall/features/user/domain"
 	"bengcall/utils/common"
-	"bengcall/utils/helper"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -46,30 +44,26 @@ func (uh *userHandler) MyProfile() echo.HandlerFunc {
 
 func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var input EditFormat
-		if err := c.Bind(&input); err != nil {
-			return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
-		}
-
-		file, _ := c.FormFile("images")
-		if file != nil {
-			res, err := helper.UploadProfile(c)
-			if err != nil {
-				return err
+		userID, role := common.ExtractToken(c)
+		if userID == 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else if role == 0 {
+			var input EditFormat
+			if err := c.Bind(&input); err != nil {
+				return c.JSON(http.StatusBadRequest, FailResponse("cannot bind update data"))
 			}
-			log.Print(res)
-			input.Images = res
-		}
 
-		id, _ := common.ExtractToken(c)
-		userID := uint(id)
-		cnv := ToDomain(input)
-		res, err := uh.srv.UpdateProfile(cnv, userID)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
-		}
+			file, fileheader, _ := c.Request().FormFile("images")
 
-		return c.JSON(http.StatusCreated, SuccessResponse("Success update user", ToResponse(res, "edit")))
+			cnv := ToDomain(input)
+			res, err := uh.srv.UpdateProfile(cnv, file, fileheader, userID)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+			return c.JSON(http.StatusAccepted, SuccessResponse("success update user", ToResponse(res, "edit")))
+		} else {
+			return c.JSON(http.StatusUnauthorized, FailResponse("wrong role"))
+		}
 	}
 }
 

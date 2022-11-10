@@ -2,8 +2,8 @@ package helper
 
 import (
 	"context"
-	"log"
 	"math/rand"
+	"mime/multipart"
 	"os"
 	"time"
 
@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
 )
 
 // CREATE RANDOM STRING
@@ -37,17 +35,9 @@ func String(length int) string {
 
 // UPLOAD FOTO PROFILE TO AWS S3
 
-func UploadProfile(c echo.Context) (string, error) {
-
-	file, fileheader, err := c.Request().FormFile("images")
-	if err != nil {
-		log.Print(err)
-		return "", err
-	}
+func UploadProfile(file multipart.File, fileheader *multipart.FileHeader) (string, error) {
 
 	randomStr := String(20)
-
-	godotenv.Load(".env")
 
 	s3Config := &aws.Config{
 		Region:      aws.String("ap-southeast-1"),
@@ -58,7 +48,7 @@ func UploadProfile(c echo.Context) (string, error) {
 	uploader := s3manager.NewUploader(s3Session)
 
 	input := &s3manager.UploadInput{
-		Bucket:      aws.String("bengcallbucket"),                                      // bucket's name
+		Bucket:      aws.String("bengcallbucket"),                                   // bucket's name
 		Key:         aws.String("profile/" + randomStr + "-" + fileheader.Filename), // files destination location
 		Body:        file,                                                           // content of the file
 		ContentType: aws.String("image/jpg"),                                        // content type
