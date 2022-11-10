@@ -143,6 +143,15 @@ func (rq *repoQuery) GetAll() ([]domain.TransactionAll, error) {
 	return res, nil
 }
 
+func (rq *repoQuery) GetMy(userID uint) (domain.TransactionHistory, error) {
+	var resQry TransactionComplete
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status != 3", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+		return domain.TransactionHistory{}, err
+	}
+	res := ToDomHistory(resQry)
+	return res, nil
+}
+
 func (rq *repoQuery) GetHistory(userID uint) ([]domain.TransactionHistory, error) {
 	var resQry []TransactionComplete
 	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ?", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {

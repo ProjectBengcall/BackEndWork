@@ -1,16 +1,15 @@
 package domain
 
 type VehicleCore struct {
-	ID                uint
-	Name_vehicle      string
-	ServiceVehicleDet ServiceVehicleDet
+	ID           uint
+	Name_vehicle string
 }
 
 type ServiceVehicle struct {
-	ID          uint
-	ServiceName string
-	Price       int
-	VehicleID   uint
+	ID           uint
+	ServiceName  string
+	Price        int
+	Name_vehicle string
 }
 
 type ServiceVehicleDet struct {
@@ -30,5 +29,5 @@ type Service interface {
 	AddVehicle(newItem VehicleCore) (VehicleCore, error)
 	GetVehicle() ([]VehicleCore, error)
 
-	GetService() ([]VehicleCore, []ServiceVehicle, error)
+	GetService() ([]ServiceVehicle, error)
 }

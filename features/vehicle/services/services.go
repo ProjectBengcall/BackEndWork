@@ -21,17 +21,16 @@ func New(repo domain.Repository) domain.Service {
 }
 
 // GetService implements domain.Service
-func (vs *vehicleService) GetService() ([]domain.VehicleCore, []domain.ServiceVehicle, error) {
-	resVehicle, err := vs.qry.GetAll()
-	if err != nil {
-		return nil, nil, errors.New("no data")
-	}
+func (vs *vehicleService) GetService() ([]domain.ServiceVehicle, error) {
+	// resVehicle, err := vs.qry.GetAll()
+	// if err != nil {
+	// 	return nil, errors.New("no data")
+	// }
 	resService, err := vs.qry.Get()
 	if err != nil {
-		return nil, nil, errors.New("get service error")
+		return nil, errors.New("get service error")
 	}
-
-	return resVehicle, resService, nil
+	return resService, nil
 }
 
 // AddVehicle implements domain.Service

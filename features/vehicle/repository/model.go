@@ -9,14 +9,13 @@ import (
 type Vehicle struct {
 	gorm.Model
 	Name_vehicle string
-	Service      []Service `gorm:"foreignKey:VehicleID"`
 }
 
 type Service struct {
 	gorm.Model
-	ServiceName string
-	Price       int
-	VehicleID   uint
+	ServiceName  string
+	Price        int
+	Name_vehicle string
 }
 
 func FromDomain(dv domain.VehicleCore) Vehicle {
@@ -45,7 +44,7 @@ func ToDomainArray(av []Vehicle) []domain.VehicleCore {
 func ToDomainArraySer(av []Service) []domain.ServiceVehicle {
 	var res []domain.ServiceVehicle
 	for _, val := range av {
-		res = append(res, domain.ServiceVehicle{ID: val.ID, ServiceName: val.ServiceName, Price: val.Price, VehicleID: val.VehicleID})
+		res = append(res, domain.ServiceVehicle{ID: val.ID, ServiceName: val.ServiceName, Price: val.Price, Name_vehicle: val.Name_vehicle})
 	}
 
 	return res

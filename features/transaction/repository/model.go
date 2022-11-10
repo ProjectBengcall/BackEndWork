@@ -83,6 +83,15 @@ func ToDomCmmt(t Transaction) domain.TransactionCore {
 	}
 }
 
+func ToDomHistory(t TransactionComplete) domain.TransactionHistory {
+	return domain.TransactionHistory{
+		ID:       t.ID,
+		Schedule: t.Schedule,
+		Invoice:  t.Invoice,
+		Total:    t.Total,
+	}
+}
+
 func ToDomDetail(t TransactionComplete) domain.TransactionDetail {
 	return domain.TransactionDetail{
 		ID:           t.ID,

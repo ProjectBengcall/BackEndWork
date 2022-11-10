@@ -18,6 +18,7 @@ type transactionHandler struct {
 func New(e *echo.Echo, srv domain.Service) {
 	handler := transactionHandler{srv: srv}
 	e.GET("/history", handler.HistoryTransaction(), middleware.JWT([]byte(ck.JwtKey)))
+	e.GET("/transaction/me", handler.MyTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.GET("/transaction/:id", handler.DetailTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.GET("/admin/transaction", handler.AllTransaction(), middleware.JWT([]byte(ck.JwtKey)))
 	e.POST("/transaction", handler.NewTransaction(), middleware.JWT([]byte(ck.JwtKey)))
@@ -122,6 +123,23 @@ func (th *transactionHandler) HistoryTransaction() echo.HandlerFunc {
 		userID, role := common.ExtractToken(c)
 		if role == 0 || role == 1 {
 			res, err := th.srv.History(userID)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			}
+			return c.JSON(http.StatusOK, SuccessResponse("Success get all transaction data", ToResponse(res, "history")))
+		} else if userID == 0 {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		} else {
+			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+		}
+	}
+}
+
+func (th *transactionHandler) MyTransaction() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, role := common.ExtractToken(c)
+		if role == 0 || role == 1 {
+			res, err := th.srv.My(userID)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 			}

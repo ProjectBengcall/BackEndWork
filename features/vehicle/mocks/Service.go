@@ -49,15 +49,15 @@ func (_m *Service) DeleteVehicle(vehicleID uint) error {
 }
 
 // GetService provides a mock function with given fields:
-func (_m *Service) GetService() ([]domain.VehicleCore, error) {
+func (_m *Service) GetService() ([]domain.ServiceVehicle, error) {
 	ret := _m.Called()
 
-	var r0 []domain.VehicleCore
-	if rf, ok := ret.Get(0).(func() []domain.VehicleCore); ok {
+	var r0 []domain.ServiceVehicle
+	if rf, ok := ret.Get(0).(func() []domain.ServiceVehicle); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domain.VehicleCore)
+			r0 = ret.Get(0).([]domain.ServiceVehicle)
 		}
 	}
 
