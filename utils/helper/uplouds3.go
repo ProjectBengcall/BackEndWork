@@ -41,7 +41,7 @@ func UploadProfile(file multipart.File, fileheader *multipart.FileHeader) (strin
 
 	s3Config := &aws.Config{
 		Region:      aws.String("ap-southeast-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_USER"), os.Getenv("AWS_KEY"), ""),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), ""),
 	}
 	s3Session := session.New(s3Config)
 
