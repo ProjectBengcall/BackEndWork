@@ -21,16 +21,16 @@ type AddResponse struct {
 }
 
 type GetResponse struct {
-	ID           uint   `json:"id"`
-	Name_vehicle string `json:"name_vehicle"`
-	Service      []domain.ServiceVehicle
+	ID           uint     `json:"id"`
+	Name_vehicle string   `json:"name_vehicle"`
+	Services     []GetRes `json:"services"`
 }
 
 type GetRes struct {
-	ID           uint   `json:"id"`
-	Name_vehicle string `json:"name_vehicle"`
-	ServiceName  string `json:"service_name"`
-	Price        int    `json:"price"`
+	ID          uint   `json:"id"`
+	ServiceName string `json:"service_name"`
+	Price       int    `json:"price"`
+	VehicleID   uint   `json:"vehicle_id"`
 }
 
 func ToResponse(basic interface{}, code string) interface{} {
@@ -46,30 +46,31 @@ func ToResponse(basic interface{}, code string) interface{} {
 			arr = append(arr, AddResponse{ID: val.ID, Name_vehicle: val.Name_vehicle})
 		}
 		res = arr
-	case "vs":
-		var arr []GetRes
-		cnv := basic.([]domain.ServiceVehicle)
-		for _, val := range cnv {
-			arr = append(arr, GetRes{ID: val.ID, Name_vehicle: val.Name_vehicle, ServiceName: val.ServiceName, Price: val.Price})
-		}
-		res = arr
 	}
 
 	return res
 }
 
-// func ToResponseGet(vehicle interface{}, service interface{}) interface{} {
-// 	var res interface{}
-// 	var resService []domain.ServiceVehicle
-// 	cnvService := service.([]domain.ServiceVehicle)
+func ToResponseGet(vehicle interface{}, service interface{}, code string) interface{} {
+	var res interface{}
+	switch code {
+	case "vs":
+		var arr []GetResponse
+		cnv := vehicle.([]domain.VehicleCore)
+		for _, val := range cnv {
 
-// 	for _, val := range cnvService {
-// 		resService = append(resService, domain.ServiceVehicle{ID: val.ID, ServiceName: val.ServiceName, Price: val.Price, Name_vehicle: val.Name_vehicle})
-// 	}
+			var ar []GetRes
+			cnr := service.([]domain.ServiceVehicle)
+			for _, vol := range cnr {
+				if vol.VehicleID == val.ID {
+					ar = append(ar, GetRes{ID: vol.ID, ServiceName: vol.ServiceName, Price: vol.Price})
+				}
+			}
 
-// 	cnvVehicle := vehicle.([]domain.VehicleCore)
-// 	resVehicle := GetResponse{ID: cnvVehicle.ID, Name_vehicle: cnvVehicle.Name_vehicle, Service: resService}
+			arr = append(arr, GetResponse{ID: val.ID, Name_vehicle: val.Name_vehicle, Services: ar})
 
-// 	res = resVehicle
-// 	return res
-// }
+		}
+		res = arr
+	}
+	return res
+}

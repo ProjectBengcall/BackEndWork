@@ -18,16 +18,27 @@ func New(db *gorm.DB) domain.Repository {
 }
 
 // Get implements domain.Repository
-func (rq *repoQuery) Get() ([]domain.ServiceVehicle, error) {
-	var resQry []Service
+func (rq *repoQuery) Get() ([]domain.VehicleCore, []domain.ServiceVehicle, error) {
+	var verQry []Vehicle
+	var serQry []Service
 
-	if err := rq.db.Table("vehicles").Select("vehicles.id", "vehicles.name_vehicle", "services.service_name", "services.price").Joins("join services on services.vehicle_id=vehicles.id").Order("vehicles.name_vehicle asc").Where("services.deleted_at IS NULL").Model(&Service{}).Find(&resQry).Error; err != nil {
-		return nil, err
+	if err := rq.db.Find(&verQry).Error; err != nil {
+		log.Error("Error on All user", err.Error())
+		return nil, nil, err
 	}
 
-	// selesai dari DB
-	res := ToDomainArraySer(resQry)
-	return res, nil
+	if err := rq.db.Find(&serQry).Error; err != nil {
+		log.Error("Error on All user", err.Error())
+		return nil, nil, err
+	}
+
+	// if err := rq.db.Table("vehicles").Select("vehicles.id", "vehicles.name_vehicle", "services.service_name", "services.price").Joins("join services on services.vehicle_id=vehicles.id").Order("vehicles.name_vehicle asc").Where("services.deleted_at IS NULL").Model(&Service{}).Find(&serQry).Error; err != nil {
+	// 	return nil, nil, err
+	// }
+
+	ver := ToDomainArray(verQry)
+	ser := ToDomainArraySer(serQry)
+	return ver, ser, nil
 }
 
 // Add implements domain.Repository

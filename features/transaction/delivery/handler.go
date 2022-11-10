@@ -157,11 +157,11 @@ func (th *transactionHandler) DetailTransaction() echo.HandlerFunc {
 		userID, role := common.ExtractToken(c)
 		if role == 0 || role == 1 {
 			ID, _ := strconv.Atoi(c.Param("id"))
-			res, err := th.srv.Detail(uint(ID))
+			res, dtl, err := th.srv.Detail(uint(ID))
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 			}
-			return c.JSON(http.StatusOK, SuccessResponse("Success get detail transaction data", ToResponse(res, "detail")))
+			return c.JSON(http.StatusOK, SuccessResponse("Success get detail transaction data", ToResponses(res, dtl, "ally")))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {

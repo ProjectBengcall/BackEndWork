@@ -72,6 +72,31 @@ type ResponseCmmt struct {
 	Comment string `json:"comment"`
 }
 
+type ResponseTrx struct {
+	ID           uint
+	Location     int
+	Fullname     string
+	Schedule     time.Time
+	Phone        string
+	Address      string
+	Invoice      int
+	Total        int
+	PaymentToken string
+	PaymentLink  string
+	Other        string
+	Additional   int
+	Status       int
+	Comment      string
+	Detail       []ResponseDtl
+}
+
+type ResponseDtl struct {
+	ID           uint
+	Name_vehicle string
+	ServiceName  string
+	SubTotal     int
+}
+
 func ToResponse(core interface{}, code string) interface{} {
 	var res interface{}
 	switch code {
@@ -105,5 +130,25 @@ func ToResponse(core interface{}, code string) interface{} {
 		}
 		res = arr
 	}
+	return res
+}
+
+func ToResponses(core interface{}, come interface{}, code string) interface{} {
+	var res interface{}
+	switch code {
+	case "ally":
+		cnv := core.(domain.TransactionDetail)
+
+		var ar []ResponseDtl
+		cnr := come.([]domain.DetailCores)
+		for _, vol := range cnr {
+			if vol.TransactionID == cnv.Invoice {
+				ar = append(ar, ResponseDtl{ID: vol.ID, Name_vehicle: vol.Name_vehicle, ServiceName: vol.ServiceName, SubTotal: vol.SubTotal})
+			}
+		}
+
+		res = ResponseTrx{ID: cnv.ID, Location: cnv.Location, Fullname: cnv.Fullname, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule, Other: cnv.Other, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink, Detail: ar}
+	}
+
 	return res
 }
