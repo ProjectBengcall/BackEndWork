@@ -72,7 +72,7 @@ func (_m *Service) Comment(updateCmmt domain.TransactionCore, ID uint) (domain.T
 }
 
 // Detail provides a mock function with given fields: ID
-func (_m *Service) Detail(ID uint) (domain.TransactionDetail, error) {
+func (_m *Service) Detail(ID uint) (domain.TransactionDetail, []domain.DetailCores, error) {
 	ret := _m.Called(ID)
 
 	var r0 domain.TransactionDetail
@@ -82,14 +82,23 @@ func (_m *Service) Detail(ID uint) (domain.TransactionDetail, error) {
 		r0 = ret.Get(0).(domain.TransactionDetail)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(uint) error); ok {
+	var r1 []domain.DetailCores
+	if rf, ok := ret.Get(1).(func(uint) []domain.DetailCores); ok {
 		r1 = rf(ID)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]domain.DetailCores)
+		}
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(uint) error); ok {
+		r2 = rf(ID)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // History provides a mock function with given fields: userID
