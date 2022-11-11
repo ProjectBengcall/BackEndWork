@@ -6,6 +6,8 @@ import (
 	"bengcall/utils/common"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -72,19 +74,30 @@ func (th *transactionHandler) UpdateStatus() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
 		if role == 1 {
-			var input StatusFormat
-			ID, _ := strconv.Atoi(c.Param("id"))
-			if err := c.Bind(&input); err != nil {
-				return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
+			var check int = 0
+			for _, char := range c.Param("id") {
+				if unicode.IsNumber(char) {
+					check += 0
+				} else {
+					check = 1
+				}
 			}
+			if check == 1 {
+				return c.JSON(http.StatusInternalServerError, FailResponse("id not valid"))
+			} else {
+				ID, _ := strconv.Atoi(c.Param("id"))
+				var input StatusFormat
+				if err := c.Bind(&input); err != nil {
+					return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
+				}
 
-			cnv := ToDomain(input)
-			res, err := th.srv.Status(cnv, uint(ID))
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				cnv := ToDomain(input)
+				res, err := th.srv.Status(cnv, uint(ID))
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+				return c.JSON(http.StatusCreated, SuccessResponse("Success update transaction status", ToResponse(res, "stts")))
 			}
-
-			return c.JSON(http.StatusCreated, SuccessResponse("Success update transaction status", ToResponse(res, "stts")))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
@@ -97,19 +110,35 @@ func (th *transactionHandler) AddComment() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
 		if role == 0 || role == 1 {
-			var input CommentFormat
-			ID, _ := strconv.Atoi(c.Param("id"))
-			if err := c.Bind(&input); err != nil {
-				return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
+			var check int = 0
+			for _, char := range c.Param("id") {
+				if unicode.IsNumber(char) {
+					check += 0
+				} else {
+					check = 1
+				}
 			}
+			if check == 1 {
+				return c.JSON(http.StatusInternalServerError, FailResponse("id not valid"))
+			} else {
+				ID, _ := strconv.Atoi(c.Param("id"))
+				var input CommentFormat
+				if err := c.Bind(&input); err != nil {
+					return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
+				}
+				if strings.TrimSpace(input.Comment) == "" {
+					return c.JSON(http.StatusBadRequest, FailResponse("input empty"))
+				} else {
+					cnv := ToDomain(input)
+					res, err := th.srv.Comment(cnv, uint(ID))
+					if err != nil {
+						return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+					}
 
-			cnv := ToDomain(input)
-			res, err := th.srv.Comment(cnv, uint(ID))
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+					return c.JSON(http.StatusCreated, SuccessResponse("Success add comment", ToResponse(res, "cmmt")))
+				}
+
 			}
-
-			return c.JSON(http.StatusCreated, SuccessResponse("Success add comment", ToResponse(res, "cmmt")))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
@@ -191,12 +220,24 @@ func (th *transactionHandler) CancelTransaction() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
 		if role == 1 {
-			ID, _ := strconv.Atoi(c.Param("id"))
-			err := th.srv.Cancel(uint(ID))
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			var check int = 0
+			for _, char := range c.Param("id") {
+				if unicode.IsNumber(char) {
+					check += 0
+				} else {
+					check = 1
+				}
 			}
-			return c.JSON(http.StatusAccepted, FailResponse("Success Cancel Transaction Service"))
+			if check == 1 {
+				return c.JSON(http.StatusInternalServerError, FailResponse("id not valid"))
+			} else {
+				ID, _ := strconv.Atoi(c.Param("id"))
+				err := th.srv.Cancel(uint(ID))
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+				return c.JSON(http.StatusAccepted, FailResponse("Success Cancel Transaction Service"))
+			}
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {

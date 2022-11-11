@@ -33,11 +33,20 @@ func TestGetSpesific(t *testing.T) {
 	})
 
 	t.Run("Failed", func(t *testing.T) {
-		repo.On("Get", 2).Return(nil, errors.New("data not found")).Once()
+		repo.On("Get", 3).Return(nil, errors.New("data not found")).Once()
 		srv := New(repo)
-		_, err := srv.GetSpesific(2)
+		_, err := srv.GetSpesific(3)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "No Data")
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("Failed", func(t *testing.T) {
+		repo.On("Get", 4).Return(nil, errors.New("id doesn't match")).Once()
+		srv := New(repo)
+		_, err := srv.GetSpesific(4)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "There's no ID")
 		repo.AssertExpectations(t)
 	})
 }

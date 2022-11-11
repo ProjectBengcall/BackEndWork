@@ -26,9 +26,10 @@ func (ss *servService) GetSpesific(vehicleID int) ([]domain.Core, error) {
 			return nil, errors.New("Database Error")
 		} else if strings.Contains(err.Error(), "found") {
 			return nil, errors.New("No Data")
+		} else if strings.Contains(err.Error(), "id") {
+			return nil, errors.New("There's no ID")
 		}
 	}
-
 	return res, nil
 }
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bengcall/features/service/domain"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,11 +20,21 @@ func New(db *gorm.DB) domain.Repository {
 
 func (rq *repoQuery) Get(vehicleID int) ([]domain.Core, error) {
 	var resQry []Service
-	if err := rq.db.Table("services").Select("id", "service_name", "price", "vehicle_id").Where("vehicle_id = ?", vehicleID).Model(&Service{}).Find(&resQry).Error; err != nil {
-		return nil, err
+	var verQry Vehicle
+
+	if er := rq.db.Table("vehicles").Select("id").Where("id = ?", vehicleID).Model(&Vehicle{}).Find(&verQry).Error; er != nil {
+		return nil, er
 	}
-	res := ToDomainArray(resQry)
-	return res, nil
+
+	if verQry.ID == uint(vehicleID) {
+		if err := rq.db.Table("services").Select("id", "service_name", "price", "vehicle_id").Where("vehicle_id = ?", vehicleID).Model(&Service{}).Find(&resQry).Error; err != nil {
+			return nil, err
+		}
+		res := ToDomainArray(resQry)
+		return res, nil
+	} else {
+		return nil, errors.New("id not recognize")
+	}
 }
 
 func (rq *repoQuery) Add(newService domain.Core) (domain.Core, error) {

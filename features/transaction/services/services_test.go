@@ -158,6 +158,17 @@ func TestComment(t *testing.T) {
 		assert.EqualError(t, err, "Some Problem on Database")
 		repo.AssertExpectations(t)
 	})
+
+	t.Run("Failed", func(t *testing.T) {
+		repo.On("PutCmmt", mock.Anything, uint(4)).Return(domain.TransactionCore{}, errors.New("id doesn't match")).Once()
+		srv := New(repo)
+		res, err := srv.Comment(domain.TransactionCore{}, uint(4))
+		assert.Equal(t, uint(0), res.ID)
+		assert.Equal(t, "", res.Comment)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "There's no ID")
+		repo.AssertExpectations(t)
+	})
 }
 
 func TestAll(t *testing.T) {
@@ -259,29 +270,36 @@ func TestMy(t *testing.T) {
 func TestDetail(t *testing.T) {
 	repo := new(mocks.Repository)
 	trx := domain.TransactionDetail{ID: uint(1), Schedule: time.Now(), Invoice: 983672, Total: 150000}
+	dtl := []domain.DetailCores{{ID: uint(1), Name_vehicle: "Supra", ServiceName: "Full Service", SubTotal: 150000}}
 
 	t.Run("Success", func(t *testing.T) {
-		repo.On("GetDetail", uint(1)).Return(trx, nil).Once()
+		repo.On("GetDetail", uint(1)).Return(trx, dtl, nil).Once()
 		srv := New(repo)
-		_, _, err := srv.Detail(uint(1))
+		res, ser, err := srv.Detail(uint(1))
+		assert.NotNil(t, res)
+		assert.NotNil(t, ser)
 		assert.NoError(t, err)
 		assert.Nil(t, err)
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Failed", func(t *testing.T) {
-		repo.On("GetDetail", uint(2)).Return(domain.TransactionDetail{}, errors.New("table not exists")).Once()
+		repo.On("GetDetail", uint(2)).Return(domain.TransactionDetail{}, nil, errors.New("table not exists")).Once()
 		srv := New(repo)
-		_, _, err := srv.Detail(uint(2))
+		res, ser, err := srv.Detail(uint(2))
+		assert.Empty(t, res)
+		assert.Nil(t, ser)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "Database Error")
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Failed", func(t *testing.T) {
-		repo.On("GetDetail", uint(3)).Return(domain.TransactionDetail{}, errors.New("data not found")).Once()
+		repo.On("GetDetail", uint(3)).Return(domain.TransactionDetail{}, nil, errors.New("data not found")).Once()
 		srv := New(repo)
-		_, _, err := srv.Detail(uint(3))
+		res, ser, err := srv.Detail(uint(3))
+		assert.Empty(t, res)
+		assert.Nil(t, ser)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "No Data")
 		repo.AssertExpectations(t)

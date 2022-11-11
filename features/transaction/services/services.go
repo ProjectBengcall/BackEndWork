@@ -69,6 +69,8 @@ func (ss *transactionService) Comment(updateCmmt domain.TransactionCore, ID uint
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate") {
 			return domain.TransactionCore{}, errors.New("Rejected from Database")
+		} else if strings.Contains(err.Error(), "id") {
+			return domain.TransactionCore{}, errors.New("There's no ID")
 		}
 		return domain.TransactionCore{}, errors.New("Some Problem on Database")
 	}
