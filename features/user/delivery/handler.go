@@ -5,11 +5,13 @@ import (
 	"bengcall/features/user/domain"
 	"bengcall/utils/common"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gorm.io/gorm"
 )
 
 type userHandler struct {
@@ -29,7 +31,7 @@ func (uh *userHandler) MyProfile() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
 		if role != 0 {
-			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+			return c.JSON(http.StatusUnauthorized, FailResponse("this account costumer"))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
@@ -55,6 +57,10 @@ func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 
 			file, fileheader, _ := c.Request().FormFile("images")
 
+			if strings.TrimSpace(input.Email) == "" && strings.TrimSpace(input.Password) == "" && strings.TrimSpace(input.Fullname) == "" && file == nil {
+				return c.JSON(http.StatusBadRequest, FailResponse("please insert one field"))
+			}
+
 			cnv := ToDomain(input)
 			res, err := uh.srv.UpdateProfile(cnv, file, fileheader, userID)
 			if err != nil {
@@ -62,7 +68,7 @@ func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 			}
 			return c.JSON(http.StatusAccepted, SuccessResponse("success update user", ToResponse(res, "edit")))
 		} else {
-			return c.JSON(http.StatusUnauthorized, FailResponse("wrong role"))
+			return c.JSON(http.StatusUnauthorized, FailResponse("this account costumer"))
 		}
 	}
 }
@@ -70,17 +76,27 @@ func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 func (uh *userHandler) Deactivate() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
-		if role != 0 {
-			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
+
+		if role == 0 {
+			res, err := uh.srv.Deactivate(userID)
+			log.Println("res data :", res)
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					return c.JSON(http.StatusBadRequest, FailResponse("not found"))
+				} else if strings.Contains(err.Error(), "database") {
+					return c.JSON(http.StatusBadRequest, FailResponse("not found"))
+				} else {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+			} else {
+				return c.JSON(http.StatusAccepted, SuccessDeleteResponse("Success deactivate account"))
+			}
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
-			err := uh.srv.Deactivate(userID)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
-			}
-			return c.JSON(http.StatusAccepted, FailResponse("success deactivate account"))
+			return c.JSON(http.StatusUnauthorized, FailResponse("this account costumer"))
 		}
+
 	}
 }
 

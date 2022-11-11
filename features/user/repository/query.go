@@ -29,13 +29,20 @@ func (rq *repoQuery) AddUser(newUser domain.UserCore) (domain.UserCore, error) {
 }
 
 // Delete implements domain.Repository
-func (rq *repoQuery) Delete(userID uint) error {
-	var data User
-	if err := rq.db.Delete(&data, "id = ?", userID).Error; err != nil {
-		log.Error("error on deleting user", err.Error())
-		return err
+func (rq *repoQuery) Delete(userID uint) (domain.UserCore, error) {
+	var resQry User
+
+	if err := rq.db.First(&resQry, "ID = ?", userID).Error; err != nil {
+		log.Error(err.Error())
+		return ToDomain(resQry), err
 	}
-	return nil
+	if err := rq.db.Delete(&resQry).Error; err != nil {
+		log.Error(err.Error())
+		return ToDomain(resQry), err
+	}
+
+	res := ToDomain(resQry)
+	return res, nil
 }
 
 // GetMyUser implements domain.Repository
