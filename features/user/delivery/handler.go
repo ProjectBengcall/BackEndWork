@@ -55,6 +55,10 @@ func (uh *userHandler) UpdateProfile() echo.HandlerFunc {
 
 			file, fileheader, _ := c.Request().FormFile("images")
 
+			if strings.TrimSpace(input.Email) == "" && strings.TrimSpace(input.Password) == "" && strings.TrimSpace(input.Fullname) == "" && file == nil {
+				return c.JSON(http.StatusBadRequest, FailResponse("please insert one field"))
+			}
+
 			cnv := ToDomain(input)
 			res, err := uh.srv.UpdateProfile(cnv, file, fileheader, userID)
 			if err != nil {

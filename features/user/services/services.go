@@ -119,12 +119,44 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 // UpdateProfile implements domain.Service
 func (us *userService) UpdateProfile(updatedUser domain.UserCore, file multipart.File, fileheader *multipart.FileHeader, userID uint) (domain.UserCore, error) {
 	if updatedUser.Password != "" {
-		generate, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
+		var cnv rep.Password
+		cnv.Password = updatedUser.Password
+		err := us.validate.Struct(cnv)
 		if err != nil {
-			log.Error("error on bcrypt password updated user", err.Error())
-			return domain.UserCore{}, errors.New("cannot encrypt password")
+			log.Error("error on validation", err.Error())
+			return domain.UserCore{}, errors.New("invalid password")
+		} else {
+			generate, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
+			if err != nil {
+				log.Error("error on bcrypt password updated user", err.Error())
+				return domain.UserCore{}, errors.New("cannot encrypt password")
+			} else {
+
+				updatedUser.Password = string(generate)
+			}
 		}
-		updatedUser.Password = string(generate)
+	}
+
+	if updatedUser.Email != "" {
+		var cnv rep.Email
+		cnv.Email = updatedUser.Email
+		err := us.validate.Struct(cnv)
+		if err != nil {
+			log.Error("error on validation", err.Error())
+			return domain.UserCore{}, errors.New("invalid email")
+		}
+	}
+
+	if updatedUser.Fullname != "" {
+		var cnv rep.Fullname
+		cnv.Fullname = updatedUser.Fullname
+		//Fullname := updatedUser.Fullname
+		err := us.validate.Struct(cnv)
+		if err != nil {
+			log.Error("error on validation", err.Error())
+			return domain.UserCore{}, errors.New("invalid fullname")
+		}
+
 	}
 
 	if fileheader != nil {
