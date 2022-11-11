@@ -90,54 +90,54 @@ func TestGetVehicle(t *testing.T) {
 func TestGetService(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	t.Run("Succses Get Vehicle", func(t *testing.T) {
-		repo.On("Get", mock.Anything).Return([]domain.ServiceVehicle{{ID: uint(1), Name_vehicle: "Supra 125 125cc", ServiceName: "Full Service", Price: 100000}}, nil).Once()
+		repo.On("Get", mock.Anything).Return([]domain.VehicleCore{{ID: uint(1), Name_vehicle: "Revo 125cc"}}, []domain.ServiceVehicle{{ID: uint(1), ServiceName: "Full Service", Price: 100000}}, nil).Once()
 		srv := New(repo)
-		res, err := srv.GetService()
+		ver, _, err := srv.GetService()
 		assert.Nil(t, err)
-		assert.NotNil(t, res)
-		assert.Greater(t, res[0].ID, uint(0)) //lebih besar
-		assert.GreaterOrEqual(t, len(res), 1) //lebih besar atau sama
+		assert.NotNil(t, ver)
+		assert.Greater(t, ver[0].ID, uint(0)) //lebih besar
+		assert.GreaterOrEqual(t, len(ver), 1) //lebih besar atau sama
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Cant Retrive on database", func(t *testing.T) {
 		repo.On("Get", mock.Anything).Return(nil, errors.New(config.DATABASE_ERROR)).Once()
 		srv := New(repo)
-		res, err := srv.GetService()
+		ver, _, err := srv.GetService()
 		assert.NotNil(t, err)
-		assert.Nil(t, res)
+		assert.Nil(t, ver)
 		assert.EqualError(t, err, "get service error", "pesan error tidak sesuai")
-		assert.Equal(t, len(res), 0, "len harusnya 0 karena tidak ada data")
+		assert.Equal(t, len(ver), 0, "len harusnya 0 karena tidak ada data")
 		repo.AssertExpectations(t)
 	})
 }
 
 func TestDeleteVehicle(t *testing.T) {
 	repo := mocks.NewRepository(t)
-	t.Run("Sucses delete profil", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(nil).Once()
+	t.Run("Sucses delete vehicle", func(t *testing.T) {
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, nil).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.Nil(t, err)
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Data not found", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(gorm.ErrRecordNotFound).Once()
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, gorm.ErrRecordNotFound).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, gorm.ErrRecordNotFound.Error(), "pesan error tidak sesuai")
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("error data on database", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(errors.New(config.DATABASE_ERROR)).Once()
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, errors.New(config.DATABASE_ERROR)).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, config.DATABASE_ERROR, "pesan error tidak sesuai")
 		repo.AssertExpectations(t)
