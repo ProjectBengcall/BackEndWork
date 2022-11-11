@@ -263,7 +263,7 @@ func TestDetail(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		repo.On("GetDetail", uint(1)).Return(trx, nil).Once()
 		srv := New(repo)
-		_, err := srv.Detail(uint(1))
+		_, _, err := srv.Detail(uint(1))
 		assert.NoError(t, err)
 		assert.Nil(t, err)
 		repo.AssertExpectations(t)
@@ -272,7 +272,7 @@ func TestDetail(t *testing.T) {
 	t.Run("Failed", func(t *testing.T) {
 		repo.On("GetDetail", uint(2)).Return(domain.TransactionDetail{}, errors.New("table not exists")).Once()
 		srv := New(repo)
-		_, err := srv.Detail(uint(2))
+		_, _, err := srv.Detail(uint(2))
 		assert.Error(t, err)
 		assert.EqualError(t, err, "Database Error")
 		repo.AssertExpectations(t)
@@ -281,7 +281,7 @@ func TestDetail(t *testing.T) {
 	t.Run("Failed", func(t *testing.T) {
 		repo.On("GetDetail", uint(3)).Return(domain.TransactionDetail{}, errors.New("data not found")).Once()
 		srv := New(repo)
-		_, err := srv.Detail(uint(3))
+		_, _, err := srv.Detail(uint(3))
 		assert.Error(t, err)
 		assert.EqualError(t, err, "No Data")
 		repo.AssertExpectations(t)
