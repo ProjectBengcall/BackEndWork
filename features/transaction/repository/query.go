@@ -3,6 +3,7 @@ package repository
 import (
 	"bengcall/features/transaction/domain"
 	"errors"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -57,8 +58,8 @@ func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailC
 	newTrx.PaymentToken = snapResp.Token
 	newTrx.PaymentLink = snapResp.RedirectURL
 
-	if err := rq.db.Exec("INSERT INTO transactions (id, created_at, updated_at, deleted_at, location, phone, address, invoice, total, payment_token, payment_link, schedule, status, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		nil, time.Now(), time.Now(), nil, newTrx.Location, newTrx.Phone, newTrx.Address, newTrx.Invoice, total, newTrx.PaymentToken, newTrx.PaymentLink, newTrx.Schedule, 1, newTrx.UserID).Error; err != nil {
+	if err := rq.db.Exec("INSERT INTO transactions (id, created_at, updated_at, deleted_at, location, phone, address, invoice, total, other, payment_token, payment_link, schedule, status, user_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		nil, time.Now(), time.Now(), nil, newTrx.Location, newTrx.Phone, newTrx.Address, newTrx.Invoice, total, newTrx.Other, newTrx.PaymentToken, newTrx.PaymentLink, newTrx.Schedule, 1, newTrx.UserID).Error; err != nil {
 		return domain.TransactionDetail{}, err
 	}
 
@@ -80,43 +81,48 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 	updateStts.ID = ID
 	var resQry Transaction
 
-	if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
-		updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
-		return domain.TransactionCore{}, err
+	if updateStts.Additional > 0 {
+		if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
+			updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
+
+		if er := rq.db.Table("transactions").Select("total").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+			return domain.TransactionCore{}, er
+		}
+
+		var invo int
+		rand.Seed(time.Now().UnixNano())
+		invo = rand.Intn(100000)
+		v := strconv.Itoa(invo)
+
+		// 1. Initiate Snap client
+		s.New("SB-Mid-server-eKSCGMJJG-IEL_LscFEV9-nP", midtrans.Sandbox)
+
+		// 2. Initiate Snap request param
+		req := &snap.Request{
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  v,
+				GrossAmt: int64(resQry.Total),
+			},
+			CreditCard: &snap.CreditCardDetails{
+				Secure: true,
+			},
+		}
+
+		// 3. Execute request create Snap transaction to Midtrans Snap API
+		snapResp, _ := s.CreateTransaction(req)
+
+		newPaymentToken := snapResp.Token
+		newPaymentLink := snapResp.RedirectURL
+
+		if err := rq.db.Exec("UPDATE transactions SET payment_token = ?, payment_link = ? WHERE id = ?",
+			newPaymentToken, newPaymentLink, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
 	}
 
-	if er := rq.db.Table("transactions").Select("invoice", "total").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
-		return domain.TransactionCore{}, er
-	}
-
-	v := strconv.Itoa(resQry.Invoice)
-
-	// 1. Initiate Snap client
-	s.New("SB-Mid-server-eKSCGMJJG-IEL_LscFEV9-nP", midtrans.Sandbox)
-
-	// 2. Initiate Snap request param
-	req := &snap.Request{
-		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  v,
-			GrossAmt: int64(resQry.Total),
-		},
-		CreditCard: &snap.CreditCardDetails{
-			Secure: true,
-		},
-	}
-
-	// 3. Execute request create Snap transaction to Midtrans Snap API
-	snapResp, _ := s.CreateTransaction(req)
-
-	newPaymentToken := snapResp.Token
-	newPaymentLink := snapResp.RedirectURL
-
-	if err := rq.db.Exec("UPDATE transactions SET payment_token = ?, payment_link = ? WHERE id = ?",
-		newPaymentToken, newPaymentLink, ID).Error; err != nil {
-		return domain.TransactionCore{}, err
-	}
-
-	if er := rq.db.Table("transactions").Select("id", "payment_token", "payment_link", "status").Where("id = ?", ID).Model(&Transaction{}).Find(&resQry).Error; er != nil {
+	if er := rq.db.Table("transactions").Select("id", "invoice", "payment_token", "payment_link", "status").Where("id = ?", ID).Model(&Transaction{}).Find(&resQry).Error; er != nil {
 		return domain.TransactionCore{}, er
 	}
 

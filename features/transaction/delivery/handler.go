@@ -91,19 +91,12 @@ func (th *transactionHandler) UpdateStatus() echo.HandlerFunc {
 					return c.JSON(http.StatusBadRequest, FailResponse("cannot bind data"))
 				}
 
-				add := strconv.Itoa(input.Additional)
-				stat := strconv.Itoa(input.Status)
-
-				if strings.TrimSpace(input.Other) == "" || strings.TrimSpace(add) == "" || strings.TrimSpace(stat) == "" {
-					return c.JSON(http.StatusBadRequest, FailResponse("there's input empty"))
-				} else {
-					cnv := ToDomain(input)
-					res, err := th.srv.Status(cnv, uint(ID))
-					if err != nil {
-						return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
-					}
-					return c.JSON(http.StatusCreated, SuccessResponse("Success update transaction status", ToResponse(res, "stts")))
+				cnv := ToDomain(input)
+				res, err := th.srv.Status(cnv, uint(ID))
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 				}
+				return c.JSON(http.StatusCreated, SuccessResponse("Success update transaction status", ToResponse(res, "stts")))
 			}
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))

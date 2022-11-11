@@ -78,6 +78,7 @@ func FromDomCmmt(du domain.TransactionCore) Transaction {
 func ToDomStts(t Transaction) domain.TransactionCore {
 	return domain.TransactionCore{
 		ID:           t.ID,
+		Invoice:      t.Invoice,
 		PaymentToken: t.PaymentToken,
 		PaymentLink:  t.PaymentLink,
 		Status:       t.Status,
