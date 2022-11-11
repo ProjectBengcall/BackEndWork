@@ -55,12 +55,20 @@ func (rq *repoQuery) Add(newItem domain.VehicleCore) (domain.VehicleCore, error)
 }
 
 // Delete implements domain.Repository
-func (rq *repoQuery) Delete(vehicleID uint) error {
+func (rq *repoQuery) Delete(vehicleID uint) (domain.VehicleCore, error) {
 	var resQry Vehicle
-	if err := rq.db.Where("id = ?", vehicleID).Delete(&resQry).Error; err != nil {
-		return err
+
+	if err := rq.db.First(&resQry, "ID = ?", vehicleID).Error; err != nil {
+		log.Error(err.Error())
+		return ToDomain(resQry), err
 	}
-	return nil
+	if err := rq.db.Delete(&resQry).Error; err != nil {
+		log.Error(err.Error())
+		return ToDomain(resQry), err
+	}
+
+	res := ToDomain(resQry)
+	return res, nil
 }
 
 // GetAll implements domain.Repository

@@ -17,14 +17,14 @@ type ServiceVehicleDet struct {
 }
 
 type Repository interface {
-	Delete(vehicleID uint) error
+	Delete(vehicleID uint) (VehicleCore, error)
 	Add(newItem VehicleCore) (VehicleCore, error)
 	GetAll() ([]VehicleCore, error)
 	Get() ([]VehicleCore, []ServiceVehicle, error)
 }
 
 type Service interface {
-	DeleteVehicle(vehicleID uint) error
+	DeleteVehicle(vehicleID uint) (VehicleCore, error)
 	AddVehicle(newItem VehicleCore) (VehicleCore, error)
 	GetVehicle() ([]VehicleCore, error)
 	GetService() ([]VehicleCore, []ServiceVehicle, error)
