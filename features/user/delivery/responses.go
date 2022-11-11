@@ -65,3 +65,9 @@ func FailResponse(msg string) map[string]interface{} {
 		"message": msg,
 	}
 }
+
+func SuccessDeleteResponse(msg string) map[string]interface{} {
+	return map[string]interface{}{
+		"message": msg,
+	}
+}

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bengcall/config"
 	"bengcall/features/user/domain"
 	rep "bengcall/features/user/repository"
 	"bengcall/utils/helper"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/gommon/log"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type userService struct {
@@ -27,16 +29,16 @@ func New(repo domain.Repository, val *validator.Validate) domain.Service {
 }
 
 // Deactivate implements domain.Service
-func (us *userService) Deactivate(userID uint) error {
-	err := us.qry.Delete(userID)
-	if err != nil {
-		if strings.Contains(err.Error(), "table") {
-			return errors.New("database error")
-		} else if strings.Contains(err.Error(), "found") {
-			return errors.New("no data")
-		}
+func (us *userService) Deactivate(userID uint) (domain.UserCore, error) {
+	res, err := us.qry.Delete(userID)
+	if err == gorm.ErrRecordNotFound {
+		log.Error(err.Error())
+		return domain.UserCore{}, gorm.ErrRecordNotFound
+	} else if err != nil {
+		log.Error(err.Error())
+		return domain.UserCore{}, errors.New(config.DATABASE_ERROR)
 	}
-	return nil
+	return res, nil
 }
 
 // Login implements domain.Service
