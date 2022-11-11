@@ -4,12 +4,14 @@ import (
 	"bengcall/config"
 	"bengcall/features/vehicle/domain"
 	"bengcall/utils/common"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gorm.io/gorm"
 )
 
 type vehicleHandler struct {
@@ -55,12 +57,24 @@ func (bs *vehicleHandler) DeleteVehicle() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, role := common.ExtractToken(c)
 		if role == 1 {
-			ID, _ := strconv.Atoi(c.Param("id"))
-			err := bs.srv.DeleteVehicle(uint(ID))
+			ID, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				return c.JSON(http.StatusBadRequest, FailResponse("id product must integer"))
 			}
-			return c.JSON(http.StatusAccepted, FailResponse("Success delete service type"))
+
+			res, err := bs.srv.DeleteVehicle(uint(ID))
+			log.Println("res data :", res)
+			if err != nil {
+				if err == gorm.ErrRecordNotFound {
+					return c.JSON(http.StatusBadRequest, FailResponse("not found"))
+				} else if strings.Contains(err.Error(), "database") {
+					return c.JSON(http.StatusBadRequest, FailResponse("not found"))
+				} else {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+			} else {
+				return c.JSON(http.StatusAccepted, SuccessDeleteResponse("Success delete vehicle"))
+			}
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {

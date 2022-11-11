@@ -43,16 +43,16 @@ func (vs *vehicleService) AddVehicle(newItem domain.VehicleCore) (domain.Vehicle
 }
 
 // DeleteVehicle implements domain.Service
-func (vs *vehicleService) DeleteVehicle(vehicleID uint) error {
-	err := vs.qry.Delete(vehicleID)
+func (vs *vehicleService) DeleteVehicle(vehicleID uint) (domain.VehicleCore, error) {
+	res, err := vs.qry.Delete(vehicleID)
 	if err == gorm.ErrRecordNotFound {
 		log.Error(err.Error())
-		return gorm.ErrRecordNotFound
+		return domain.VehicleCore{}, gorm.ErrRecordNotFound
 	} else if err != nil {
 		log.Error(err.Error())
-		return errors.New(config.DATABASE_ERROR)
+		return domain.VehicleCore{}, errors.New(config.DATABASE_ERROR)
 	}
-	return nil
+	return res, nil
 }
 
 // GetVehicle implements domain.Service

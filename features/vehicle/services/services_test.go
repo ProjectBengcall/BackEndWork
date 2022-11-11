@@ -111,37 +111,37 @@ func TestGetService(t *testing.T) {
 		assert.Nil(t, res)
 		assert.Nil(t, ser)
 		assert.EqualError(t, err, "get service error", "pesan error tidak sesuai")
-		assert.Equal(t, len(res), 0, "len harusnya 0 karena tidak ada data")
+		assert.Equal(t, len(ver), 0, "len harusnya 0 karena tidak ada data")
 		repo.AssertExpectations(t)
 	})
 }
 
 func TestDeleteVehicle(t *testing.T) {
 	repo := mocks.NewRepository(t)
-	t.Run("Sucses delete profil", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(nil).Once()
+	t.Run("Sucses delete vehicle", func(t *testing.T) {
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, nil).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.Nil(t, err)
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Data not found", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(gorm.ErrRecordNotFound).Once()
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, gorm.ErrRecordNotFound).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, gorm.ErrRecordNotFound.Error(), "pesan error tidak sesuai")
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("error data on database", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(errors.New(config.DATABASE_ERROR)).Once()
+		repo.On("Delete", mock.Anything).Return(domain.VehicleCore{}, errors.New(config.DATABASE_ERROR)).Once()
 		srv := New(repo)
 		var id = uint(1)
-		err := srv.DeleteVehicle(id)
+		_, err := srv.DeleteVehicle(id)
 		assert.NotNil(t, err)
 		assert.EqualError(t, err, config.DATABASE_ERROR, "pesan error tidak sesuai")
 		repo.AssertExpectations(t)
