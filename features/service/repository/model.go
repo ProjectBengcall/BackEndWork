@@ -13,6 +13,11 @@ type Service struct {
 	VehicleID   uint
 }
 
+type Vehicle struct {
+	ID           uint
+	Name_vehicle string
+}
+
 func FromDomain(du domain.Core) Service {
 	return Service{
 		Model:       gorm.Model{ID: du.ID},

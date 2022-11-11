@@ -73,28 +73,28 @@ type ResponseCmmt struct {
 }
 
 type ResponseTrx struct {
-	ID           uint
-	Location     int
-	Fullname     string
-	Schedule     time.Time
-	Phone        string
-	Address      string
-	Invoice      int
-	Total        int
-	PaymentToken string
-	PaymentLink  string
-	Other        string
-	Additional   int
-	Status       int
-	Comment      string
-	Detail       []ResponseDtl
+	ID           uint          `json:"id"`
+	Location     int           `json:"location"`
+	Fullname     string        `json:"fullname"`
+	Schedule     time.Time     `json:"date"`
+	Phone        string        `json:"phone"`
+	Address      string        `json:"address"`
+	Invoice      int           `json:"invoice"`
+	Total        int           `json:"total"`
+	PaymentToken string        `json:"payment_token"`
+	PaymentLink  string        `json:"payment_link"`
+	Other        string        `json:"other"`
+	Additional   int           `json:"additional"`
+	Status       int           `json:"status"`
+	Comment      string        `json:"comment"`
+	Detail       []ResponseDtl `json:"detail"`
 }
 
 type ResponseDtl struct {
-	ID           uint
-	Name_vehicle string
-	ServiceName  string
-	SubTotal     int
+	ID           uint   `json:"id"`
+	Name_vehicle string `json:"vehicle_name"`
+	ServiceName  string `json:"service_name"`
+	SubTotal     int    `json:"sub-total"`
 }
 
 func ToResponse(core interface{}, code string) interface{} {

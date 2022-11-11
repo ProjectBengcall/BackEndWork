@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bengcall/features/transaction/domain"
+	"errors"
 	"strconv"
 	"time"
 
@@ -125,13 +126,23 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 
 func (rq *repoQuery) PutCmmt(updateCmmt domain.TransactionCore, ID uint) (domain.TransactionCore, error) {
 	updateCmmt.ID = ID
+	var resQry Transaction
 	var cnv Transaction = FromDomCmmt(updateCmmt)
-	if err := rq.db.Exec("UPDATE transactions SET comment = ? WHERE id = ?",
-		updateCmmt.Comment, ID).Error; err != nil {
-		return domain.TransactionCore{}, err
+
+	if er := rq.db.Table("transactions").Select("id").Where("id = ?", ID).Model(&Transaction{}).Find(&resQry).Error; er != nil {
+		return domain.TransactionCore{}, er
 	}
-	res := ToDomCmmt(cnv)
-	return res, nil
+
+	if resQry.ID == ID {
+		if err := rq.db.Exec("UPDATE transactions SET comment = ? WHERE id = ?",
+			updateCmmt.Comment, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
+		res := ToDomCmmt(cnv)
+		return res, nil
+	} else {
+		return domain.TransactionCore{}, errors.New("id not recognize")
+	}
 }
 
 func (rq *repoQuery) GetAll() ([]domain.TransactionAll, error) {
