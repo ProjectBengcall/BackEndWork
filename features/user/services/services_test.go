@@ -188,7 +188,7 @@ func TestDeactivate(t *testing.T) {
 	t.Run("Sukses Delete User", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(nil).Once()
 		srv := New(repo, validator.New())
-		err := srv.Deactivate(1)
+		_, err := srv.Deactivate(1)
 		assert.Nil(t, err)
 		repo.AssertExpectations(t)
 	})
@@ -196,7 +196,7 @@ func TestDeactivate(t *testing.T) {
 	t.Run("Fail Database Error", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(errors.New("table not exists")).Once()
 		srv := New(repo, validator.New())
-		err := srv.Deactivate(2)
+		_, err := srv.Deactivate(2)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "database error")
 		repo.AssertExpectations(t)
@@ -205,7 +205,7 @@ func TestDeactivate(t *testing.T) {
 	t.Run("Fail No Data", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(errors.New("data not found")).Once()
 		srv := New(repo, validator.New())
-		err := srv.Deactivate(3)
+		_, err := srv.Deactivate(3)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "no data")
 		repo.AssertExpectations(t)

@@ -62,7 +62,7 @@ func (rq *repoQuery) Delete(vehicleID uint) (domain.VehicleCore, error) {
 		log.Error(err.Error())
 		return ToDomain(resQry), err
 	}
-	if err := rq.db.Delete(&resQry).Error; err != nil {
+	if err := rq.db.Unscoped().Delete(&resQry).Error; err != nil {
 		log.Error(err.Error())
 		return ToDomain(resQry), err
 	}
