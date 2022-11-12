@@ -71,7 +71,7 @@ func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailC
 }
 
 func (rq *repoQuery) PutScss(ID uint) error {
-	if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE invoice = ?", 3, ID).Error; err != nil {
+	if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE invoice = ?", 6, ID).Error; err != nil {
 		return err
 	}
 	return nil
