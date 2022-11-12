@@ -21,7 +21,7 @@
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 ![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
-![Go](https://img.shields.io/badge/go-%2300ADD8.svg?
+![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
 ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
@@ -35,6 +35,11 @@
 **Communication:**  
 ![GitHub](https://img.shields.io/badge/github%20Project-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 ![Discord](https://img.shields.io/badge/Discord-%237289DA.svg?style=for-the-badge&logo=discord&logoColor=white)
+
+
+## 🏎️ ERD 📍
+
+<img src="image/erd.png">
 
 ## Open Api 🔥
 
@@ -188,10 +193,6 @@ For costumer
 | --- | --- | --- | --- | --- |
 | GET | /history | - | YES | get history transaction on customer. |
 
-</details>
-
-<div>
-      <details>
 
 ## 🏎️ Run Locally
 
@@ -209,10 +210,10 @@ Go to the project directory
 
 ## 📱 Our teams
 
-  - Gerdo Trada Wijaya [![GitHub](https://img.shields.io/badge/Gerdo-Trada-Wijaya-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/9tw)
+  - Gerdo Trada Wijaya [![GitHub](https://img.shields.io/badge/9tw-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/9tw)
 
 
-  - Lukmanul Khakim [![GitHub](https://img.shields.io/badge/Lukmanul-Khakim-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LukmanulKhakim)
+  - Lukmanul Khakim [![GitHub](https://img.shields.io/badge/LukmanulKhakim-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/LukmanulKhakim)
 
 <h5>
 <p align="center">:copyright: 2022 | This Repository Built with :heart: from us</p>
