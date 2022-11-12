@@ -107,10 +107,10 @@ func (us *userService) Register(newUser domain.UserCore) (domain.UserCore, error
 		orgPass := newUser.Password
 		res, err := us.qry.AddUser(newUser)
 		if err != nil {
-			if strings.Contains(err.Error(), "duplicate") {
-				return domain.UserCore{}, errors.New("rejected from database")
+			if strings.Contains(err.Error(), "Duplicate") {
+				return domain.UserCore{}, errors.New("already exist")
 			}
-			return domain.UserCore{}, errors.New("alredy exist")
+			return domain.UserCore{}, errors.New("some problem on database")
 		}
 		res.Password = orgPass
 		return res, nil

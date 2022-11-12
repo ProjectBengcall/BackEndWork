@@ -111,7 +111,7 @@ func TestGetService(t *testing.T) {
 		assert.Nil(t, res)
 		assert.Nil(t, ser)
 		assert.EqualError(t, err, "get service error", "pesan error tidak sesuai")
-		assert.Equal(t, len(ver), 0, "len harusnya 0 karena tidak ada data")
+		assert.Equal(t, len(res), 0, "len harusnya 0 karena tidak ada data")
 		repo.AssertExpectations(t)
 	})
 }

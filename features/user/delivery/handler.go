@@ -118,6 +118,8 @@ func (uh *userHandler) Register() echo.HandlerFunc {
 				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
 			} else if strings.Contains(err.Error(), " email") {
 				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
+			} else if strings.Contains(err.Error(), "already") {
+				c.JSON(http.StatusBadRequest, FailResponse(err.Error()))
 			} else {
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
 			}

@@ -35,17 +35,24 @@ func (_m *Repository) AddUser(newUser domain.UserCore) (domain.UserCore, error) 
 }
 
 // Delete provides a mock function with given fields: userID
-func (_m *Repository) Delete(userID uint) error {
+func (_m *Repository) Delete(userID uint) (domain.UserCore, error) {
 	ret := _m.Called(userID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(uint) error); ok {
+	var r0 domain.UserCore
+	if rf, ok := ret.Get(0).(func(uint) domain.UserCore); ok {
 		r0 = rf(userID)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(domain.UserCore)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetMyUser provides a mock function with given fields: userID
