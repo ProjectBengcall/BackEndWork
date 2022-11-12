@@ -120,6 +120,11 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 			newPaymentToken, newPaymentLink, ID).Error; err != nil {
 			return domain.TransactionCore{}, err
 		}
+	} else {
+		if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE id = ?",
+			updateStts.Status, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
 	}
 
 	if er := rq.db.Table("transactions").Select("id", "invoice", "payment_token", "payment_link", "status").Where("id = ?", ID).Model(&Transaction{}).Find(&resQry).Error; er != nil {

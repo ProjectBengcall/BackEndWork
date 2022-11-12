@@ -22,7 +22,7 @@ type TransactionSuccess struct {
 type DetailFormat struct {
 	VehicleID uint `json:"vehicle_id" form:"vehicle_id"`
 	ServiceID uint `json:"service_id" form:"service_id"`
-	SubTotal  int  `json:"sub-total" form:"sub-total"`
+	SubTotal  int  `json:"sub_total" form:"sub_total"`
 }
 
 type StatusFormat struct {
