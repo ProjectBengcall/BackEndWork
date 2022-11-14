@@ -5,7 +5,7 @@ import "time"
 type TransactionCore struct {
 	ID           uint
 	Location     int
-	Schedule     time.Time
+	Schedule     string
 	Phone        string
 	Address      string
 	Invoice      int
@@ -82,6 +82,7 @@ type TransactionDetail struct {
 	Other        string
 	Status       int
 	Fullname     string
+	Email        string
 	Name_vehicle string
 	ServiceName  string
 }

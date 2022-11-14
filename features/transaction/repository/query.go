@@ -63,7 +63,7 @@ func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailC
 		return domain.TransactionDetail{}, err
 	}
 
-	if er := rq.db.Table("transactions").Select("id", "invoice", "total", "status", "payment_token", "payment_link").Where("invoice = ?", newTrx.Invoice).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+	if er := rq.db.Table("transactions").Select("transactions.id", "transactions.invoice", "transactions.total", "transactions.status", "transactions.payment_token", "transactions.payment_link", "users.email").Joins("join users on users.id=transactions.user_id").Where("invoice = ?", newTrx.Invoice).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
 		return domain.TransactionDetail{}, er
 	}
 	res := ToDomDetail(resQry)
@@ -71,7 +71,7 @@ func (rq *repoQuery) Post(newTrx domain.TransactionCore, newDtl []domain.DetailC
 }
 
 func (rq *repoQuery) PutScss(ID uint) error {
-	if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE invoice = ?", 3, ID).Error; err != nil {
+	if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE invoice = ?", 6, ID).Error; err != nil {
 		return err
 	}
 	return nil
@@ -118,6 +118,11 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 
 		if err := rq.db.Exec("UPDATE transactions SET payment_token = ?, payment_link = ? WHERE id = ?",
 			newPaymentToken, newPaymentLink, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
+	} else {
+		if err := rq.db.Exec("UPDATE transactions SET status = ? WHERE id = ?",
+			updateStts.Status, ID).Error; err != nil {
 			return domain.TransactionCore{}, err
 		}
 	}

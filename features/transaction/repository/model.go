@@ -55,6 +55,7 @@ type TransactionComplete struct {
 	Status       int
 	Comment      string
 	Fullname     string
+	Email        string
 	Name_vehicle string
 	ServiceName  string
 }
@@ -115,6 +116,7 @@ func ToDomDetail(t TransactionComplete) domain.TransactionDetail {
 		Other:        t.Other,
 		Status:       t.Status,
 		Fullname:     t.Fullname,
+		Email:        t.Email,
 		Name_vehicle: t.Name_vehicle,
 		ServiceName:  t.ServiceName,
 	}
