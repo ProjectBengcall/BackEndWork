@@ -52,12 +52,14 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 
 	var authCode string
 	if _, err := fmt.Scan(&authCode); err != nil {
-		log.Fatalf("Unable to read authorization code: %v", err)
+		log.Error(errors.New("Unable to read authorization code"))
+		//log.Fatalf("Unable to read authorization code: %v", err)
 	}
 
 	tok, err := config.Exchange(context.TODO(), authCode)
 	if err != nil {
-		log.Fatalf("Unable to retrieve token from web: %v", err)
+		log.Error(errors.New("Unable to retrieve token from web"))
+		//log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
 	return tok
 }
@@ -79,7 +81,8 @@ func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		log.Error(errors.New("Unable to cache oauth token"))
+		//log.Fatalf("Unable to cache oauth token: %v", err)
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
@@ -143,19 +146,22 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(bt, calendar.CalendarScope)
 	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
+		log.Error(errors.New("Unable to parse client secret file to config"))
+		//log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 	client := getClient(config)
 
 	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Calendar client: %v", err)
+		log.Error(errors.New("Unable to retrieve Calendar client"))
+		//log.Fatalf("Unable to retrieve Calendar client: %v", err)
 	}
 
 	calendarId := "primary"
 	event, err = srv.Events.Insert(calendarId, event).Do()
 	if err != nil {
-		log.Fatalf("Unable to create event. %v\n", err)
+		log.Error(errors.New("Unable to create event"))
+		//log.Fatalf("Unable to create event. %v\n", err)
 	}
 	fmt.Printf("Event created: %s\n", event.HtmlLink)
 
