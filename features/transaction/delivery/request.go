@@ -13,9 +13,9 @@ type TransactionFormat struct {
 	Detail   []DetailFormat `json:"detail" form:"detail"`
 }
 
-type TransactionSuccess struct {
+type SuccessFormat struct {
 	Status string `json:"transaction_status" form:"transaction_status"`
-	Order  int    `json:"order_id" form:"order_id"`
+	Order  string `json:"order_id" form:"order_id"`
 }
 
 type DetailFormat struct {
@@ -59,4 +59,13 @@ func ToDomain(i interface{}) domain.TransactionCore {
 		return domain.TransactionCore{Comment: cnv.Comment}
 	}
 	return domain.TransactionCore{}
+}
+
+func ToSucc(i interface{}) domain.TransactionSuccess {
+	switch i.(type) {
+	case SuccessFormat:
+		cnv := i.(SuccessFormat)
+		return domain.TransactionSuccess{Status: cnv.Status, Order: cnv.Order}
+	}
+	return domain.TransactionSuccess{}
 }
