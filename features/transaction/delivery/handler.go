@@ -4,7 +4,9 @@ import (
 	ck "bengcall/config"
 	"bengcall/features/transaction/domain"
 	"bengcall/utils/common"
+	"bengcall/utils/helper"
 	"fmt"
+	lo "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -71,6 +73,8 @@ func (th *transactionHandler) TransactionSuccess() echo.HandlerFunc {
 		if cnv.Status == "capture" || cnv.Status == "settlement" {
 			ID, _ := strconv.Atoi(cnv.Order)
 			err := th.srv.Success(uint(ID))
+			res, _ := helper.Create(uint(ID))
+			lo.Println(res)
 			if err != nil {
 				log.Error(err)
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
