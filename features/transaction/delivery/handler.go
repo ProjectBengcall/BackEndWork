@@ -4,6 +4,7 @@ import (
 	ck "bengcall/config"
 	"bengcall/features/transaction/domain"
 	"bengcall/utils/common"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -57,9 +58,17 @@ func (th *transactionHandler) NewTransaction() echo.HandlerFunc {
 
 func (th *transactionHandler) TransactionSuccess() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var trx TransactionSuccess
-		if trx.Status == "capture" || trx.Status == "settlement" {
-			ID := trx.Order
+		var trx SuccessFormat
+		if err := c.Bind(&trx); err != nil {
+			return c.JSON(http.StatusBadRequest, FailResponse("cannot bind input"))
+		}
+
+		cnv := ToSucc(trx)
+		fmt.Println(cnv.Status)
+		fmt.Println(cnv.Order)
+
+		if cnv.Status == "capture" || cnv.Status == "settlement" {
+			ID, _ := strconv.Atoi(cnv.Order)
 			err := th.srv.Success(uint(ID))
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))

@@ -87,6 +87,11 @@ type TransactionDetail struct {
 	ServiceName  string
 }
 
+type TransactionSuccess struct {
+	Status string
+	Order  string
+}
+
 type Repository interface {
 	GetAll() ([]TransactionAll, error)
 	GetMy(userID uint) (TransactionHistory, error)
