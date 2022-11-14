@@ -58,3 +58,27 @@ func UploadProfile(file multipart.File, fileheader *multipart.FileHeader) (strin
 	// RETURN URL LOCATION IN AWS
 	return res.Location, err
 }
+
+func UploadFile(file multipart.File, fileheader *multipart.FileHeader) (string, error) {
+
+	randomStr := String(20)
+
+	s3Config := &aws.Config{
+		Region:      aws.String("ap-southeast-1"),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), ""),
+	}
+	s3Session := session.New(s3Config)
+
+	uploader := s3manager.NewUploader(s3Session)
+
+	input := &s3manager.UploadInput{
+		Bucket:      aws.String("bengcallbucket"),                                // bucket's name
+		Key:         aws.String("docs/" + randomStr + "-" + fileheader.Filename), // files destination location
+		Body:        file,                                                        // content of the file
+		ContentType: aws.String("application/pdf"),                               // content type
+	}
+	res, err := uploader.UploadWithContext(context.Background(), input)
+
+	// RETURN URL LOCATION IN AWS
+	return res.Location, err
+}
