@@ -75,7 +75,7 @@ func (th *transactionHandler) TransactionSuccess() echo.HandlerFunc {
 			}
 			return c.JSON(http.StatusCreated, FailResponse("Transaction Success"))
 		}
-		return c.JSON(http.StatusCreated, FailResponse("Transaction Error"))
+		return c.JSON(http.StatusBadRequest, FailResponse("Transaction Error"))
 	}
 }
 
