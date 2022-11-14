@@ -19,7 +19,7 @@ func TestTransaction(t *testing.T) {
 		repo.On("Post", mock.Anything, mock.Anything).Return(service, nil).Once()
 
 		srv := New(repo)
-		input := domain.TransactionCore{Location: 1, Schedule: time.Now(), Phone: "081234567890", Address: "Jl. Pahlawan No. 32, Surabaya"}
+		input := domain.TransactionCore{Location: 1, Schedule: "2022-10-01", Phone: "081234567890", Address: "Jl. Pahlawan No. 32, Surabaya"}
 		inputs := []domain.DetailCore{{VehicleID: 1, ServiceID: 1, SubTotal: 50000}, {VehicleID: 1, ServiceID: 2, SubTotal: 75000}, {VehicleID: 1, ServiceID: 3, SubTotal: 25000}}
 		res, err := srv.Transaction(input, inputs)
 		assert.NoError(t, err)

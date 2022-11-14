@@ -2,14 +2,13 @@ package delivery
 
 import (
 	"bengcall/features/transaction/domain"
-	"time"
 )
 
 type TransactionFormat struct {
 	Location int            `json:"location" form:"location"`
 	Phone    string         `json:"phone" form:"phone"`
 	Address  string         `json:"address" form:"address"`
-	Schedule time.Time      `json:"date" form:"date"`
+	Schedule string         `json:"date" form:"date"`
 	Other    string         `json:"other" form:"other"`
 	Detail   []DetailFormat `json:"detail" form:"detail"`
 }

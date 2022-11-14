@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -91,35 +90,55 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 	rand.Seed(time.Now().UnixNano())
 	invo = rand.Intn(100000)
 	newTrx.Invoice = invo
+	start := newTrx.Schedule + "T08:00:00+07:00"
+	end := newTrx.Schedule + "T09:00:00+07:00"
+
+	res, err := ss.qry.Post(newTrx, newDtl)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			return domain.TransactionDetail{}, errors.New("rejected from database")
+		}
+		return domain.TransactionDetail{}, errors.New("some problem on database")
+	}
+
 	str := strconv.Itoa(invo)
+	//t := newTrx.Schedule.String()
+	// p := newTrx.Schedule.Add(time.Hour * 1)
+	// e := p.String()
+	//fmt.Println(t)
 
 	event := &calendar.Event{
-		Summary:     str,
+		Summary:     "Bengcall Invoice Number: " + str,
 		Location:    newTrx.Address,
-		Description: newTrx.Phone,
+		Description: "Contact Admin: 081234567890",
 		Start: &calendar.EventDateTime{
-			DateTime: "2022-06-24T11:00:00+05:30",
-			TimeZone: "Asia/Kolkata",
+			DateTime: start,
+			TimeZone: "Asia/Jakarta",
 		},
 		End: &calendar.EventDateTime{
-			DateTime: "2022-06-24T11:15:00+05:30",
-			TimeZone: "Asia/Kolkata",
+			DateTime: end,
+			TimeZone: "Asia/Jakarta",
 		},
 		//Recurrence: []string{"RRULE:FREQ=DAILY;COUNT=2"},
 		Attendees: []*calendar.EventAttendee{
-			&calendar.EventAttendee{Email: "gerdo.tewel@gmail.com"},
+			&calendar.EventAttendee{Email: res.Email},
 		},
 	}
 
 	ctx := context.Background()
 
-	b, err := ioutil.ReadFile("./credentials.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
+	// b, err := ioutil.ReadFile("./credentials.json")
+	// if err != nil {
+	// 	log.Fatalf("Unable to read client secret file: %v", err)
+	// }
+
+	b := `{"installed":{"client_id":"323200350837-emie7g20nce78itnjt28h3qm15dul4u0.apps.googleusercontent.com","project_id":"project-bengcall","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost"]}}`
+	bt := []byte(b)
+
+	//fmt.Println(b)
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, calendar.CalendarScope)
+	config, err := google.ConfigFromJSON(bt, calendar.CalendarScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
@@ -136,14 +155,6 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 		log.Fatalf("Unable to create event. %v\n", err)
 	}
 	fmt.Printf("Event created: %s\n", event.HtmlLink)
-
-	res, err := ss.qry.Post(newTrx, newDtl)
-	if err != nil {
-		if strings.Contains(err.Error(), "duplicate") {
-			return domain.TransactionDetail{}, errors.New("rejected from database")
-		}
-		return domain.TransactionDetail{}, errors.New("some problem on database")
-	}
 
 	return res, nil
 }
