@@ -71,8 +71,6 @@ func (th *transactionHandler) TransactionSuccess() echo.HandlerFunc {
 		if cnv.Status == "capture" || cnv.Status == "settlement" {
 			ID, _ := strconv.Atoi(cnv.Order)
 			err := th.srv.Success(uint(ID))
-			//res := helper.Create(uint(ID)) //proses pengiriman invoice ke email
-			//lo.Println(res)
 			if err != nil {
 				log.Error(err)
 				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))

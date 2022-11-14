@@ -47,7 +47,7 @@ func Create(id uint) (string, error) {
 	cfg := config.NewConfig()
 	db := database.InitDB(cfg)
 	//var res []string
-	if err := db.Table("transactions").Select("transactions.id", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.other", "transactions.additional", "users.fullname", "users.email").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", id).Scan(&resQry).Error; err != nil {
+	if err := db.Table("transactions").Select("transactions.id", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.other", "transactions.additional", "users.fullname", "users.email").Joins("join users on users.id=transactions.user_id").Where("transactions.invoice = ?", id).Scan(&resQry).Error; err != nil {
 		log.Error(err)
 		return "", err
 	}
