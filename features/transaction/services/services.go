@@ -132,7 +132,10 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 	// 	log.Fatalf("Unable to read client secret file: %v", err)
 	// }
 
-	b := `{"installed":{"client_id":"323200350837-emie7g20nce78itnjt28h3qm15dul4u0.apps.googleusercontent.com","project_id":"project-bengcall","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost"]}}`
+	client_id := os.Getenv("GOOGLE_CLIENT_ID")
+	project := os.Getenv("GOOGLE_PROJECT_ID")
+	secret := os.Getenv("GOOGLE_CLIENT_SECRET")
+	b := `{"installed":{"client_id":"` + client_id + `","project_id":"` + project + `","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"` + secret + `","redirect_uris":["http://localhost"]}}`
 	bt := []byte(b)
 
 	//fmt.Println(b)
