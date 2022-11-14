@@ -3,54 +3,32 @@ package helper
 import (
 	"bengcall/config"
 	"bengcall/utils/database"
-	"context"
 	loo "log"
-	"math/rand"
 	"mime/multipart"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/labstack/gommon/log"
 	gomail "gopkg.in/gomail.v2"
-	"gorm.io/gorm"
 )
 
 type DataCore struct {
-	ID       uint
-	Fullname string
-	Email    string
-	Phone    string
-	Addres   string
-	Other    string
-	Invoice  int
-	Total    int
+	ID         uint
+	Fullname   string
+	Email      string
+	Phone      string
+	Address    string
+	Other      string
+	Additional int
+	Invoice    int
+	Total      int
 }
-type Data struct {
-	gorm.Model
-	Fullname string
-	Email    string
-	Phone    string
-	Addres   string
-	Other    string
-	Invoice  int
-	Total    int
-}
+
 type ServiceCore struct {
 	ID            uint
-	Vehicle_name  string
-	Service_name  string
-	TransactionID int
-	SubTotal      int
-}
-type Service struct {
-	gorm.Model
-	Vehicle_name  string
+	Name_vehicle  string
 	Service_name  string
 	TransactionID int
 	SubTotal      int
@@ -64,28 +42,31 @@ const CONFIG_SMTP_PORT = 587
 const CONFIG_SENDER_NAME = "PT. Bengcall jaya <klukmanul33@gmail.com>"
 
 func Create(id uint) (string, error) {
-	var resQry Data
-	var prodQry Service
+	var resQry DataCore
+	var prodQry ServiceCore
 	cfg := config.NewConfig()
 	db := database.InitDB(cfg)
 	//var res []string
-	if err := db.Table("transactions").Select("transactions.id", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.other", "transactions.status", "users.fullname", "users.email").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", id).Scan(&resQry).Error; err != nil {
+	if err := db.Table("transactions").Select("transactions.id", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.other", "transactions.additional", "users.fullname", "users.email").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", id).Scan(&resQry).Error; err != nil {
 		log.Error(err)
 		return "", err
 	}
-	if err := db.Table("details").Select("vehicles.name_vehicle", "services.service_name", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Scan(&prodQry).Error; err != nil {
+	if err := db.Table("details").Select("details.id", "vehicles.name_vehicle", "services.service_name", "details.transaction_id", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Scan(&prodQry).Error; err != nil {
 		log.Error(err)
 		return "", err
 	}
+	loo.Println(resQry)
+	loo.Println(prodQry)
 	//dat := ToCoreData(resQry)
-	//ser := ToCoreService(prodQry)
-	pdf, err := newReport(resQry.Fullname, resQry.Invoice)
+	a := strconv.Itoa(int(resQry.Invoice))
+	pdf, err := newReport(resQry.Fullname, a)
 	pdf = header(pdf, []string{"vehicle", "Service", "Price"})
 
 	//a := strconv.Itoa(int(prodQry.Id))
 	c := strconv.Itoa(prodQry.SubTotal)
-
-	pdf = table(pdf, []string{prodQry.Vehicle_name, prodQry.Service_name, c})
+	d := strconv.Itoa(resQry.Additional)
+	e := strconv.Itoa(resQry.Total)
+	pdf = table(pdf, []string{prodQry.Name_vehicle, prodQry.Service_name, c}, resQry.Other, d, e)
 	pdf = image(pdf)
 	if pdf.Err() {
 		log.Fatalf("Failed creating PDF report: %s\n", pdf.Error())
@@ -102,7 +83,7 @@ func Create(id uint) (string, error) {
 	imageFalseCnv := &multipart.FileHeader{
 		Filename: imageFalse.Name(),
 	}
-	res, err := uploadFile(imageFalse, imageFalseCnv)
+	res, err := UploadFile(imageFalse, imageFalseCnv)
 	log.Print(res)
 
 	sendEmail(res, resQry.Email, resQry.Fullname)
@@ -114,7 +95,7 @@ func Create(id uint) (string, error) {
 }
 
 // Set bagian atas invoice
-func newReport(fullname string, invoice int) (*gofpdf.Fpdf, error) {
+func newReport(fullname string, invoice string) (*gofpdf.Fpdf, error) {
 	//set page invoice
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
@@ -123,7 +104,7 @@ func newReport(fullname string, invoice int) (*gofpdf.Fpdf, error) {
 	pdf.Ln(8)
 
 	pdf.SetFont("Times", "", 16)
-	pdf.Cell(40, 10, "Time :")
+	pdf.Cell(40, 10, "Date :")
 	pdf.SetFont("Times", "", 16)
 	pdf.Cell(40, 10, tgl) //date
 	pdf.Ln(8)
@@ -131,7 +112,7 @@ func newReport(fullname string, invoice int) (*gofpdf.Fpdf, error) {
 	pdf.SetFont("Times", "", 16)
 	pdf.Cell(40, 10, "No Invoice :")
 	pdf.SetFont("Times", "", 16)
-	pdf.Cell(40, 10, String(invoice)) //no Invoice
+	pdf.Cell(40, 10, invoice) //no Invoice
 	pdf.Ln(8)
 
 	pdf.SetFont("Times", "", 16)
@@ -147,22 +128,37 @@ func header(pdf *gofpdf.Fpdf, hdr []string) *gofpdf.Fpdf {
 	pdf.SetFont("Times", "B", 16)
 	pdf.SetFillColor(240, 240, 240)
 	for _, str := range hdr {
-		pdf.CellFormat(30, 7, str, "1", 0, "", true, 0, "")
+		pdf.CellFormat(40, 7, str, "1", 0, "", true, 0, "")
 	}
 	pdf.Ln(-1)
 	return pdf
 }
 
-func table(pdf *gofpdf.Fpdf, data []string) *gofpdf.Fpdf {
+func table(pdf *gofpdf.Fpdf, data []string, other string, add string, total string) *gofpdf.Fpdf {
 	pdf.SetFont("Times", "", 16)
 	pdf.SetFillColor(240, 240, 240)
 
 	// Every column gets aligned according to its contents.
 	//align := []string{"C", "L", "C"}
 	for _, line := range data { //input.detail
-		pdf.CellFormat(30, 7, line, "1", 0, "", true, 0, "")
+		pdf.CellFormat(40, 7, line, "1", 0, "", true, 0, "")
 	}
 	pdf.Ln(-1)
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, "other :")
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, other) //other
+	pdf.Ln(8)
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, "Price add :")
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, add) //add
+	pdf.Ln(8)
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, "Total :")
+	pdf.SetFont("Times", "", 16)
+	pdf.Cell(40, 10, total) //total
+	pdf.Ln(8)
 	//text dibawah tabel
 	pdf.SetFont("Times", "", 16)
 	pdf.Cell(40, 10, "Terima Kasih Telah Mempercayai Kami")
@@ -176,48 +172,6 @@ func table(pdf *gofpdf.Fpdf, data []string) *gofpdf.Fpdf {
 func image(pdf *gofpdf.Fpdf) *gofpdf.Fpdf {
 	pdf.ImageOptions("image/bc.png", 170, 10, 25, 25, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
 	return pdf
-}
-
-func Stringx(length int) string {
-	return autoGeneratex(length, charset)
-}
-
-func autoGeneratex(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-const charsetx = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-var seededRandx *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
-func uploadFile(file multipart.File, fileheader *multipart.FileHeader) (string, error) {
-
-	randomStr := Stringx(20)
-
-	s3Config := &aws.Config{
-		Region:      aws.String("ap-southeast-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), ""),
-	}
-	s3Session := session.New(s3Config)
-
-	uploader := s3manager.NewUploader(s3Session)
-
-	input := &s3manager.UploadInput{
-		Bucket:      aws.String("bengcallbucket"),                                // bucket's name
-		Key:         aws.String("docs/" + randomStr + "-" + fileheader.Filename), // files destination location
-		Body:        file,                                                        // content of the file
-		ContentType: aws.String("application/pdf"),                               // content type
-	}
-	res, err := uploader.UploadWithContext(context.Background(), input)
-
-	// RETURN URL LOCATION IN AWS
-	return res.Location, err
 }
 
 func sendEmail(file string, email string, fullname string) {
@@ -245,27 +199,4 @@ func DeleteFile() {
 		log.Print(err)
 	}
 
-}
-
-func ToCoreData(d Data) DataCore {
-	return DataCore{
-		ID:       d.ID,
-		Fullname: d.Fullname,
-		Email:    d.Email,
-		Phone:    d.Phone,
-		Addres:   d.Addres,
-		Other:    d.Other,
-		Invoice:  d.Invoice,
-		Total:    d.Total,
-	}
-}
-
-func ToCoreService(s Service) ServiceCore {
-	return ServiceCore{
-		ID:            s.ID,
-		Vehicle_name:  s.Vehicle_name,
-		Service_name:  s.Service_name,
-		TransactionID: s.TransactionID,
-		SubTotal:      s.SubTotal,
-	}
 }
