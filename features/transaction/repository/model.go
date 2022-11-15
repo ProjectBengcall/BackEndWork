@@ -114,6 +114,7 @@ func ToDomDetail(t TransactionComplete) domain.TransactionDetail {
 		PaymentToken: t.PaymentToken,
 		PaymentLink:  t.PaymentLink,
 		Other:        t.Other,
+		Additional:   t.Additional,
 		Status:       t.Status,
 		Fullname:     t.Fullname,
 		Email:        t.Email,
