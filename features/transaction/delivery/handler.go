@@ -46,11 +46,16 @@ func (th *transactionHandler) NewTransaction() echo.HandlerFunc {
 			cnv := ToDomain(input)
 			cns := ToDom(input)
 			cnv.UserID = userID
-			res, err := th.srv.Transaction(cnv, cns)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+
+			if strings.TrimSpace(cnv.Schedule) == "" || strings.TrimSpace(cnv.Address) == "" || strings.TrimSpace(cnv.Phone) == "" {
+				return c.JSON(http.StatusBadRequest, FailResponse("there's input empty"))
+			} else {
+				res, err := th.srv.Transaction(cnv, cns)
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+				return c.JSON(http.StatusCreated, SuccessResponse("Success creating new service", ToResponse(res, "post")))
 			}
-			return c.JSON(http.StatusCreated, SuccessResponse("Success creating new service", ToResponse(res, "post")))
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {
@@ -201,11 +206,23 @@ func (th *transactionHandler) DetailTransaction() echo.HandlerFunc {
 		userID, role := common.ExtractToken(c)
 		if role == 0 || role == 1 {
 			ID, _ := strconv.Atoi(c.Param("id"))
-			res, dtl, err := th.srv.Detail(uint(ID))
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+			var check int = 0
+			for _, char := range c.Param("id") {
+				if unicode.IsNumber(char) {
+					check += 0
+				} else {
+					check = 1
+				}
 			}
-			return c.JSON(http.StatusOK, SuccessResponse("Success get detail transaction data", ToResponses(res, dtl, "ally")))
+			if check == 1 {
+				return c.JSON(http.StatusInternalServerError, FailResponse("id not valid"))
+			} else {
+				res, dtl, err := th.srv.Detail(uint(ID))
+				if err != nil {
+					return c.JSON(http.StatusInternalServerError, FailResponse(err.Error()))
+				}
+				return c.JSON(http.StatusOK, SuccessResponse("Success get detail transaction data", ToResponses(res, dtl, "ally")))
+			}
 		} else if userID == 0 {
 			return c.JSON(http.StatusUnauthorized, FailResponse("cannot validate token"))
 		} else {

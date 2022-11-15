@@ -82,9 +82,16 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 	var resQry Transaction
 
 	if updateStts.Additional > 0 {
-		if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
-			updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
-			return domain.TransactionCore{}, err
+		if updateStts.Status != 0 {
+			if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ?, status = ? WHERE id = ?",
+				updateStts.Additional, updateStts.Other, updateStts.Additional, updateStts.Status, ID).Error; err != nil {
+				return domain.TransactionCore{}, err
+			}
+		} else {
+			if err := rq.db.Exec("UPDATE transactions SET total = total + ?, other = ?, additional = ? WHERE id = ?",
+				updateStts.Additional, updateStts.Other, updateStts.Additional, ID).Error; err != nil {
+				return domain.TransactionCore{}, err
+			}
 		}
 
 		if er := rq.db.Table("transactions").Select("total").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
@@ -167,7 +174,7 @@ func (rq *repoQuery) GetAll() ([]domain.TransactionAll, error) {
 
 func (rq *repoQuery) GetMy(userID uint) (domain.TransactionHistory, error) {
 	var resQry TransactionComplete
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status != 3", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status != 6", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
 		return domain.TransactionHistory{}, err
 	}
 	res := ToDomHistory(resQry)
@@ -176,7 +183,7 @@ func (rq *repoQuery) GetMy(userID uint) (domain.TransactionHistory, error) {
 
 func (rq *repoQuery) GetHistory(userID uint) ([]domain.TransactionHistory, error) {
 	var resQry []TransactionComplete
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status = 3", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.schedule", "transactions.invoice", "transactions.total").Where("user_id = ? && status = 6", userID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
 		return nil, err
 	}
 	res := ToDomainHistory(resQry)
@@ -186,19 +193,26 @@ func (rq *repoQuery) GetHistory(userID uint) ([]domain.TransactionHistory, error
 func (rq *repoQuery) GetDetail(ID uint) (domain.TransactionDetail, []domain.DetailCores, error) {
 	var resQry TransactionComplete
 	var dtlQry []Details
-	// if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname", "vehicles.name_vehicle", "services.service_name").Joins("join users on users.id=transactions.user_id").Joins("join details on details.transaction_id=transactions.invoice").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
-	// 	return domain.TransactionDetail{}, err
-	// }
-	if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
-		return domain.TransactionDetail{}, nil, err
-	}
-	if err := rq.db.Table("details").Select("details.id", "vehicles.name_vehicle", "services.service_name", "details.transaction_id", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Model(&Details{}).Find(&dtlQry).Error; err != nil {
-		return domain.TransactionDetail{}, nil, err
+
+	if er := rq.db.Table("transactions").Select("id").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+		return domain.TransactionDetail{}, nil, er
 	}
 
-	dtl := ToDomDetails(dtlQry)
-	res := ToDomDetail(resQry)
-	return res, dtl, nil
+	if resQry.ID == uint(ID) {
+
+		if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+			return domain.TransactionDetail{}, nil, err
+		}
+		if err := rq.db.Table("details").Select("details.id", "vehicles.name_vehicle", "services.service_name", "details.transaction_id", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Model(&Details{}).Find(&dtlQry).Error; err != nil {
+			return domain.TransactionDetail{}, nil, err
+		}
+
+		dtl := ToDomDetails(dtlQry)
+		res := ToDomDetail(resQry)
+		return res, dtl, nil
+	} else {
+		return domain.TransactionDetail{}, nil, errors.New("id not recognize")
+	}
 }
 
 func (rq *repoQuery) Delete(ID uint) error {
