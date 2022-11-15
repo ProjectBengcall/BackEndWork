@@ -50,7 +50,7 @@ func ToDomain(i interface{}) domain.TransactionCore {
 	switch i.(type) {
 	case TransactionFormat:
 		cnv := i.(TransactionFormat)
-		return domain.TransactionCore{Location: cnv.Location, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule}
+		return domain.TransactionCore{Location: cnv.Location, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule, Other: cnv.Other}
 	case StatusFormat:
 		cnv := i.(StatusFormat)
 		return domain.TransactionCore{Other: cnv.Other, Additional: cnv.Additional, Status: cnv.Status}
