@@ -123,8 +123,8 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 		newPaymentToken := snapResp.Token
 		newPaymentLink := snapResp.RedirectURL
 
-		if err := rq.db.Exec("UPDATE transactions SET payment_token = ?, payment_link = ? WHERE id = ?",
-			newPaymentToken, newPaymentLink, ID).Error; err != nil {
+		if err := rq.db.Exec("UPDATE transactions SET invoice = ?, payment_token = ?, payment_link = ? WHERE id = ?",
+			invo, newPaymentToken, newPaymentLink, ID).Error; err != nil {
 			return domain.TransactionCore{}, err
 		}
 	} else {
