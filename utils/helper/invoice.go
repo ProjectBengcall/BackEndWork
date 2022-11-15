@@ -69,7 +69,7 @@ func Create(id uint) (string, error) {
 	pdf = table(pdf, []string{prodQry.Name_vehicle, prodQry.Service_name, c}, resQry.Other, d, e)
 	pdf = image(pdf)
 	if pdf.Err() {
-		log.Fatalf("Failed creating PDF report: %s\n", pdf.Error())
+		log.Error("Failed creating PDF report: %s\n", pdf.Error())
 	}
 
 	err = pdf.OutputFileAndClose("ini-invoice.pdf")
@@ -187,7 +187,7 @@ func sendEmail(file string, email string, fullname string) {
 
 	err := dialer.DialAndSend(mailer)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 	}
 
 	loo.Println("Mail sent!")
