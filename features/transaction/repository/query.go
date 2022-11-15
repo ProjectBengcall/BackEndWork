@@ -80,6 +80,7 @@ func (rq *repoQuery) PutScss(ID uint) error {
 func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain.TransactionCore, error) {
 	updateStts.ID = ID
 	var resQry Transaction
+	var detQry Detail
 
 	if updateStts.Additional > 0 {
 		if updateStts.Status != 0 {
@@ -94,7 +95,11 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 			}
 		}
 
-		if er := rq.db.Table("transactions").Select("total").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+		if er := rq.db.Table("transactions").Select("total", "invoice").Where("id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; er != nil {
+			return domain.TransactionCore{}, er
+		}
+
+		if er := rq.db.Table("details").Select("id").Where("transaction_id = ?", resQry.Invoice).Model(&Detail{}).Find(&detQry).Error; er != nil {
 			return domain.TransactionCore{}, er
 		}
 
@@ -125,6 +130,11 @@ func (rq *repoQuery) PutStts(updateStts domain.TransactionCore, ID uint) (domain
 
 		if err := rq.db.Exec("UPDATE transactions SET invoice = ?, payment_token = ?, payment_link = ? WHERE id = ?",
 			invo, newPaymentToken, newPaymentLink, ID).Error; err != nil {
+			return domain.TransactionCore{}, err
+		}
+
+		if err := rq.db.Exec("UPDATE details SET transaction_id = ? WHERE id = ?",
+			invo, detQry.ID).Error; err != nil {
 			return domain.TransactionCore{}, err
 		}
 	} else {
