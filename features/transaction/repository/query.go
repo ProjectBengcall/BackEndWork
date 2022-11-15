@@ -200,7 +200,7 @@ func (rq *repoQuery) GetDetail(ID uint) (domain.TransactionDetail, []domain.Deta
 
 	if resQry.ID == uint(ID) {
 
-		if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.status", "users.fullname").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
+		if err := rq.db.Table("transactions").Select("transactions.id", "transactions.location", "transactions.schedule", "transactions.phone", "transactions.address", "transactions.invoice", "transactions.total", "transactions.payment_token", "transactions.payment_link", "transactions.other", "transactions.additional", "transactions.status", "users.fullname").Joins("join users on users.id=transactions.user_id").Where("transactions.id = ?", ID).Model(&TransactionComplete{}).Find(&resQry).Error; err != nil {
 			return domain.TransactionDetail{}, nil, err
 		}
 		if err := rq.db.Table("details").Select("details.id", "vehicles.name_vehicle", "services.service_name", "details.transaction_id", "details.sub_total").Joins("join vehicles on vehicles.id=details.vehicle_id").Joins("join services on services.id=details.service_id").Where("details.transaction_id = ?", resQry.Invoice).Model(&Details{}).Find(&dtlQry).Error; err != nil {

@@ -36,6 +36,7 @@
 ![GitHub](https://img.shields.io/badge/github%20Project-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 ![Discord](https://img.shields.io/badge/Discord-%237289DA.svg?style=for-the-badge&logo=discord&logoColor=white)
 
+<img src="image/tools.PNG">
 
 ## 🏎️ ERD 📍
 
@@ -206,6 +207,11 @@ Go to the project directory
 
 ```bash
   cd bengcall
+```
+Run the project
+
+```bash
+  go run server.go
 ```
 
 

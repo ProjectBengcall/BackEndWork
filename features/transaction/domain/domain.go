@@ -80,6 +80,7 @@ type TransactionDetail struct {
 	PaymentToken string
 	PaymentLink  string
 	Other        string
+	Additional   int
 	Status       int
 	Fullname     string
 	Email        string

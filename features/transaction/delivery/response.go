@@ -95,7 +95,7 @@ type ResponseDtl struct {
 	ID           uint   `json:"id"`
 	Name_vehicle string `json:"vehicle_name"`
 	ServiceName  string `json:"service_name"`
-	SubTotal     int    `json:"sub-total"`
+	SubTotal     int    `json:"sub_total"`
 }
 
 func ToResponse(core interface{}, code string) interface{} {
@@ -148,7 +148,7 @@ func ToResponses(core interface{}, come interface{}, code string) interface{} {
 			}
 		}
 
-		res = ResponseTrx{ID: cnv.ID, Location: cnv.Location, Fullname: cnv.Fullname, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule, Other: cnv.Other, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink, Detail: ar}
+		res = ResponseTrx{ID: cnv.ID, Location: cnv.Location, Fullname: cnv.Fullname, Phone: cnv.Phone, Address: cnv.Address, Schedule: cnv.Schedule, Other: cnv.Other, Additional: cnv.Additional, Invoice: cnv.Invoice, Total: cnv.Total, Status: cnv.Status, PaymentToken: cnv.PaymentToken, PaymentLink: cnv.PaymentLink, Detail: ar}
 	}
 
 	return res

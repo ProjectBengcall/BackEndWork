@@ -133,7 +133,6 @@ func (us *userService) UpdateProfile(updatedUser domain.UserCore, file multipart
 				log.Error("error on bcrypt password updated user", err.Error())
 				return domain.UserCore{}, errors.New("cannot encrypt password")
 			} else {
-
 				updatedUser.Password = string(generate)
 			}
 		}
