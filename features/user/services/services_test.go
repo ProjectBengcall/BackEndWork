@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bengcall/config"
 	"bengcall/features/user/domain"
 	"bengcall/features/user/mocks"
 	"errors"
@@ -10,17 +11,18 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 func TestLogin(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	t.Run("Sukses Login", func(t *testing.T) {
-		repo.On("GetUser", mock.Anything).Return(domain.UserCore{Password: "$2a$10$wNRtkCldluk.H6QXWPSz1.5KUcNNY0ncyh/LsPtp2IVagSD.ITRiK "}, nil).Once()
+		repo.On("GetUser", mock.Anything).Return(domain.UserCore{Email: "joko@gmail.com", Password: "joko"}, nil).Once()
 		srv := New(repo, validator.New())
 		input := domain.UserCore{Email: "joko@gmail.com", Password: "joko"}
 		res, err := srv.Login(input)
-		assert.Empty(t, res)
 		assert.EqualError(t, err, "email not found")
+		assert.NotNil(t, res.ID)
 		repo.AssertExpectations(t)
 	})
 
@@ -96,26 +98,30 @@ func TestDeactivate(t *testing.T) {
 	t.Run("Sukses Delete User", func(t *testing.T) {
 		repo.On("Delete", mock.Anything).Return(domain.UserCore{ID: uint(1)}, nil).Once()
 		srv := New(repo, validator.New())
-		_, err := srv.Deactivate(1)
+		res, err := srv.Deactivate(1)
 		assert.Nil(t, err)
+		assert.NotEmpty(t, res)
+		assert.Equal(t, domain.UserCore{ID: uint(1)}, res)
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Fail Database Error", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(domain.UserCore{}, errors.New("table not exists")).Once()
+		repo.On("Delete", mock.Anything).Return(domain.UserCore{}, errors.New(config.DATABASE_ERROR)).Once()
 		srv := New(repo, validator.New())
-		_, err := srv.Deactivate(2)
+		_, err := srv.Deactivate(1)
+		assert.NotNil(t, err)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "error, database cant process data")
+		assert.EqualError(t, err, config.DATABASE_ERROR)
 		repo.AssertExpectations(t)
 	})
 
 	t.Run("Fail No Data", func(t *testing.T) {
-		repo.On("Delete", mock.Anything).Return(domain.UserCore{}, errors.New("data not found")).Once()
+		repo.On("Delete", mock.Anything).Return(domain.UserCore{}, gorm.ErrRecordNotFound).Once()
 		srv := New(repo, validator.New())
-		_, err := srv.Deactivate(3)
+		_, err := srv.Deactivate(1)
+		assert.NotNil(t, err)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "error, database cant process data")
+		assert.EqualError(t, err, gorm.ErrRecordNotFound.Error())
 		repo.AssertExpectations(t)
 	})
 }
