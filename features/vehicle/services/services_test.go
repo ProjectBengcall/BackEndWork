@@ -85,6 +85,18 @@ func TestGetVehicle(t *testing.T) {
 		assert.Equal(t, len(res), 0, "len harusnya 0 karena tidak ada data")
 		repo.AssertExpectations(t)
 	})
+
+	// t.Run("Data not found", func(t *testing.T) {
+	// 	repo.On("GetAll", mock.Anything).Return(nil, errors.New(config.DATA_NOTFOUND)).Once()
+	// 	srv := New(repo)
+	// 	res, err := srv.GetVehicle()
+	// 	assert.NotNil(t, err)
+	// 	assert.Nil(t, res)
+	// 	assert.EqualError(t, err, config.DATA_NOTFOUND, "pesan error tidak sesuai")
+	// 	assert.Equal(t, len(res), 0, "len harusnya 0 karena tidak ada data")
+	// 	repo.AssertExpectations(t)
+	// })
+
 }
 
 func TestGetService(t *testing.T) {
