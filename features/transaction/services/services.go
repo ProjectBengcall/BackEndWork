@@ -87,21 +87,18 @@ func (ss *transactionService) Transaction(newTrx domain.TransactionCore, newDtl 
 	config, err := google.ConfigFromJSON(bt, calendar.CalendarScope)
 	if err != nil {
 		log.Error(errors.New("Unable to parse client secret file to config"))
-		//log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 	client := helper.GetClient(config)
 
 	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Error(errors.New("Unable to retrieve Calendar client"))
-		//log.Fatalf("Unable to retrieve Calendar client: %v", err)
 	}
 
 	calendarId := "primary"
 	event, err = srv.Events.Insert(calendarId, event).Do()
 	if err != nil {
 		log.Error(errors.New("Unable to create event"))
-		//log.Fatalf("Unable to create event. %v\n", err)
 	}
 	fmt.Printf("Event created: %s\n", event.HtmlLink)
 
